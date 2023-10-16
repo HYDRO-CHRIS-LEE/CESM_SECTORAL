@@ -175,18 +175,20 @@ module SectorWaterMod
    ! ========================================================================
  
    !------------------------------------------------------------------------
-     subroutine SectorWaterInit(this, bounds, NLFilename)
+     subroutine SectorWaterInit(this, bounds, NLFilename, use_aquifer_layer)
           class(sectorwater_type) , intent(inout) :: this
           type(bounds_type)      , intent(in)     :: bounds
           character(len=*)       , intent(in)    :: NLFilename ! Namelist filename
-          call this%ReadNamelist(NLFilename)
+          logical                , intent(in)    :: use_aquifer_layer ! whether an aquifer layer is used in this run
+
+          call this%ReadNamelist(NLFilename, use_aquifer_layer)
           call this%InitAllocate(bounds)
           call this%InitHistory(bounds)
           call this%InitCold(bounds)
      end subroutine SectorWaterInit
  
    !-----------------------------------------------------------------------
-     subroutine ReadNamelist(this, NLFilename)
+     subroutine ReadNamelist(this, NLFilename, use_aquifer_layer)
           !
           !!DESCRIPTION:
           ! Read the sectorwater namelist
@@ -201,6 +203,7 @@ module SectorWaterMod
           !!ARGUMENTS:
           class(sectorwater_type) , intent(inout) :: this
           character(len=*), intent(in)            :: NLFilename ! Namelist filename
+          logical, intent(in) :: use_aquifer_layer    ! whether an aquifer layer is used in this run
           !
           !!LOCAL VARIABLES:
  
@@ -268,12 +271,13 @@ module SectorWaterMod
                write(iulog,*) 'use_groundwater_sectorwater = ', use_groundwater_sectorwater
                write(iulog,*) 'path_sectorwater_input_data = ', path_sectorwater_input_data
                write(iulog,*) ' '
+               call this%CheckNamelistValidity(use_aquifer_layer)
           end if
                   
      end subroutine ReadNamelist
  
      !-----------------------------------------------------------------------
-     subroutine CheckNamelistValidity(this)
+     subroutine CheckNamelistValidity(this, use_aquifer_layer)
           !
           ! !DESCRIPTION:
           ! Check for validity of input parameters.
@@ -285,6 +289,7 @@ module SectorWaterMod
           !
           ! !ARGUMENTS:
           class(sectorwater_type), intent(in) :: this
+          logical, intent(in) :: use_aquifer_layer    ! whether an aquifer layer is used in this run
           !
           ! !LOCAL VARIABLES:
           
@@ -312,6 +317,7 @@ module SectorWaterMod
                     errMsg(sourcefile, __LINE__))
           end if
         
+     
           if (use_aquifer_layer .and. use_groundwater_sectorwater) then
                write(iulog,*) ' ERROR: use_groundwater_sectorwater and use_aquifer_layer may not be used simultaneously'
                call endrun(msg=' ERROR: use_groundwater_sectorwater and use_aquifer_layer cannot both be set to true' // &

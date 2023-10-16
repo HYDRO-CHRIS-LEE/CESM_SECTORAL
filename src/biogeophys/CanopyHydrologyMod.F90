@@ -411,7 +411,7 @@ contains
              qflx_through_liq   = w%waterflux_inst%qflx_through_liq_patch(begp:endp), &
              qflx_liqcanfall    = w%waterflux_inst%qflx_liqcanfall_patch(begp:endp), &
              qflx_irrig_drip    = w%waterflux_inst%qflx_irrig_drip_patch(begp:endp), &
-             qflx_sectorwater   = w%waterflux_inst%qflx_sectorwater_col(begc:endc), &
+             qflx_sectorwater   = w%waterflux_inst%qflx_sfc_sectorwater_col(begc:endc), &
              ! Outputs
              qflx_snow_grnd_col = w%waterflux_inst%qflx_snow_grnd_col(begc:endc), &
              qflx_liq_grnd_col  = w%waterflux_inst%qflx_liq_grnd_col(begc:endc), &
