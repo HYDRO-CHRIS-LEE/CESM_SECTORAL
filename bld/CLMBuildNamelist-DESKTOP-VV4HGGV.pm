@@ -2927,18 +2927,8 @@ sub setup_logic_sectorwater_parameters {
   my ($opts, $nl_flags, $definition, $defaults, $nl) = @_;
 
   my $var;
-  foreach $var ("limit_sectorwater_if_rof_enabled", "use_groundwater_sectorwater") {
+  foreach $var ("limit_sectorwater_if_rof_enabled") {
      add_default($opts, $nl_flags->{'inputdata_rootdir'}, $definition, $defaults, $nl, $var);
-  }
-
-  if ( &value_is_true($nl->get_value('use_groundwater_sectorwater')) &&
-       ! &value_is_true($nl->get_value('limit_sectorwater_if_rof_enabled'))) {
-     $log->fatal_error("use_groundwater_sectorwater only makes sense if limit_sectorwater_if_rof_enabled is set. (If limit_sectorwater_if_rof_enabled is .false., then groundwater extraction will never be invoked.)")
-  }
-
-  my $lower = $nl->get_value( 'lower_boundary_condition' );
-  if ( ($lower == 3 || $lower == 4) && (&value_is_true($nl->get_value( 'use_groundwater_sectorwater' ))) ) {
-     $log->fatal_error("use_groundwater_sectorwater can only be used when lower_boundary_condition is NOT 3 or 4");
   }
 
   $var = "sectorwater_river_volume_threshold";

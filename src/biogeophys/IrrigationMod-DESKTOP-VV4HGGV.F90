@@ -1415,7 +1415,7 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine CalcIrrigationNeeded(this, bounds, num_exposedvegp, filter_exposedvegp, &
-       elai, t_soisno, eff_porosity, h2osoi_liq, volr, sectorwater_total_sfc_actual_withd, sectorwater, rof_prognostic)
+       elai, t_soisno, eff_porosity, h2osoi_liq, volr, sectorwater_total_actual_withd, sectorwater, rof_prognostic)
     !
     ! !DESCRIPTION:
     ! Calculate whether and how much irrigation is needed for each column. However, this
@@ -1450,7 +1450,7 @@ contains
     real(r8), intent(in) :: volr( bounds%begg: )
 
     ! total actual water withdrawal already done for other sectors (m3) (irrigation is last in priority after domestic, livestock, thermoelectric, manufacturing and mining)
-    real(r8), intent(in) :: sectorwater_total_sfc_actual_withd( bounds%begg: )
+    real(r8), intent(in) :: sectorwater_total_actual_withd( bounds%begg: )
 
     ! if sectorwater = .true., then abstractions for other sectors are allowed
     logical, intent(in)  :: sectorwater
@@ -1651,7 +1651,7 @@ contains
             check_for_irrig_col_filter = check_for_irrig_col_filter, &
             deficit = deficit(bounds%begc:bounds%endc), &
             volr = volr(bounds%begg:bounds%endg), &
-            sectorwater_total_sfc_actual_withd = sectorwater_total_sfc_actual_withd(bounds%begg:bounds%endg), &
+            sectorwater_total_actual_withd = sectorwater_total_actual_withd(bounds%begg:bounds%endg), &
             sectorwater = sectorwater, &
             deficit_volr_limited = deficit_volr_limited(bounds%begc:bounds%endc))
        call this%CalcDeficitVolrLimited( &
@@ -1659,7 +1659,7 @@ contains
             check_for_irrig_col_filter = check_for_irrig_col_filter, &
             deficit = deficit_satu(bounds%begc:bounds%endc), &
             volr = volr(bounds%begg:bounds%endg), &
-            sectorwater_total_sfc_actual_withd = sectorwater_total_sfc_actual_withd(bounds%begg:bounds%endg), &
+            sectorwater_total_actual_withd = sectorwater_total_actual_withd(bounds%begg:bounds%endg), &
             sectorwater = sectorwater, &
             deficit_volr_limited = deficit_satu_volr_limited(bounds%begc:bounds%endc))
 	   call this%CalcDeficitVolrLimited( &
@@ -1667,7 +1667,7 @@ contains
             check_for_irrig_col_filter = check_for_irrig_col_filter, &
             deficit = deficit_pool(bounds%begc:bounds%endc), &
             volr = volr(bounds%begg:bounds%endg), &
-            sectorwater_total_sfc_actual_withd = sectorwater_total_sfc_actual_withd(bounds%begg:bounds%endg), &
+            sectorwater_total_actual_withd = sectorwater_total_actual_withd(bounds%begg:bounds%endg), &
             sectorwater = sectorwater, &
             deficit_volr_limited = deficit_pool_volr_limited(bounds%begc:bounds%endc))
     else
@@ -1759,7 +1759,7 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine CalcDeficitVolrLimited(this, bounds, check_for_irrig_col_filter, &
-       deficit, volr, sectorwater_total_sfc_actual_withd, deficit_volr_limited, sectorwater)
+       deficit, volr, sectorwater_total_actual_withd, deficit_volr_limited, sectorwater)
     !
     ! !DESCRIPTION:
     ! Calculates deficit limited by river volume for each column.
@@ -1799,7 +1799,7 @@ contains
     real(r8), intent(in) :: volr( bounds%begg: )
 
     ! total actual water withdrawal already done for other sectors (m3) (irrigation is last in priority after domestic, livestock, thermoelectric, manufacturin and mining)
-    real(r8), intent(in) :: sectorwater_total_sfc_actual_withd( bounds%begg: )
+    real(r8), intent(in) :: sectorwater_total_actual_withd( bounds%begg: )
 
     ! if sectorwater = .true., then abstractions for other sectors are allowed
     logical, intent(in)  :: sectorwater
@@ -1836,10 +1836,10 @@ contains
          l2g_scale_type = 'unity')
 
     do g = bounds%begg, bounds%endg
-       if (sectorwater .AND. volr(g) > sectorwater_total_sfc_actual_withd(g)) then 
-          available_volr = (volr(g) - sectorwater_total_sfc_actual_withd(g))  * (1._r8 - this%params%irrig_river_volume_threshold)
+       if (sectorwater .AND. volr(g) > sectorwater_total_actual_withd(g)) then 
+          available_volr = (volr(g) - sectorwater_total_actual_withd(g))  * (1._r8 - this%params%irrig_river_volume_threshold)
           max_deficit_supported_by_volr = available_volr / grc%area(g) * m3_over_km2_to_mm
-       elseif (sectorwater .AND. (volr(g) < sectorwater_total_sfc_actual_withd(g) .OR. volr(g) <= 0._r8)) then
+       elseif (sectorwater .AND. (volr(g) < sectorwater_total_actual_withd(g) .OR. volr(g) <= 0._r8)) then
           ! Ensure that if withdrawal for other sectors already exceeded available volr, then no wihdrawal for irrigation possible 
           ! Ensure that negative volr is treated the same as 0 volr
           max_deficit_supported_by_volr = 0._r8

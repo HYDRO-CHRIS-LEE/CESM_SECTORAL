@@ -552,7 +552,7 @@ contains
 
           qflx_sfc_irrig_col      =>    waterflux_inst%qflx_sfc_irrig_col       , & ! Input:  [real(r8) (:)   ]  column level irrigation flux (mm H2O /s)
           qflx_sfc_irrig_grc      =>    waterlnd2atm_inst%qirrig_grc            , & ! Input:  [real(r8) (:)   ]  grid cell-level irrigation flux (mm H20 /s)
-          qflx_sfc_sectorwater_col    =>    waterflux_inst%qflx_sfc_sectorwater_col     , & ! Input:  [real(r8) (:)   ]  column level total sector water consumption flux (mm H2O /s)
+          qflx_sectorwater_col    =>    waterflux_inst%qflx_sectorwater_col     , & ! Input:  [real(r8) (:)   ]  column level total sector water consumption flux (mm H2O /s)
 		    qflx_sectorwater_grc    =>    waterlnd2atm_inst%qsectorwater_grc      , & ! Input:  [real(r8) (:)   ]  grid cell-level total sector water consumption flux (mm H20 /s)
           qflx_glcice_dyn_water_flux_col => waterflux_inst%qflx_glcice_dyn_water_flux_col, & ! Input: [real(r8) (:)]  column level water flux needed for balance check due to glc_dyn_runoff_routing (mm H2O/s) (positive means addition of water to the system)
 
@@ -621,13 +621,17 @@ contains
 
           ! add qflx_drain_perched and qflx_flood
           if (col%active(c)) then
+             !chris
+             if (qflx_sectorwater_col(c) < 0._r8) then
+                 qflx_sectorwater_col(c) = 0._r8
+             end if
 
              errh2o_col(c) = endwb_col(c) - begwb_col(c) &
                   - (forc_rain_col(c)        &
                   + forc_snow_col(c)         &
                   + qflx_flood_col(c)        &
                   + qflx_sfc_irrig_col(c)    &
-                  + qflx_sfc_sectorwater_col(c)  &
+                  + qflx_sectorwater_col(c)  &
                   + qflx_glcice_dyn_water_flux_col(c) &
                   - qflx_evap_tot_col(c)     &
                   - qflx_surf_col(c)         &
@@ -669,7 +673,7 @@ contains
 
               write(iulog,*)'qflx_evap_tot             = ',qflx_evap_tot_col(indexc)*dtime
               write(iulog,*)'qflx_sfc_irrig            = ',qflx_sfc_irrig_col(indexc)*dtime
-              write(iulog,*)'qflx_sfc_sectorwater      = ',qflx_sfc_sectorwater_col(indexc)*dtime
+              write(iulog,*)'qflx_sectorwater          = ',qflx_sectorwater_col(indexc)*dtime
               write(iulog,*)'qflx_surf                 = ',qflx_surf_col(indexc)*dtime
               write(iulog,*)'qflx_qrgwl                = ',qflx_qrgwl_col(indexc)*dtime
               write(iulog,*)'qflx_drain                = ',qflx_drain_col(indexc)*dtime

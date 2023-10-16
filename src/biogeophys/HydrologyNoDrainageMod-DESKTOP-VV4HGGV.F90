@@ -48,355 +48,90 @@ Module HydrologyNoDrainageMod
 
 contains
 
-  !-----------------------------------------------------------------------
-  subroutine CalcAndWithdrawSectorWaterFluxes(bounds, soilhydrology_inst, sectorwater_inst, water_inst, volr, rof_prognostic)
-     !
-     ! !DESCRIPTION:
-     ! Calculates sectorwal water withdrawal, consumption and return flow fluxes;
-     ! Updates the fields which are sent to the routing model through the coupler;
-     !
-     ! !USES:
-     use clm_time_manager    , only : is_beg_curr_day
-     use ColumnType   , only : col
-     use PatchType    , only : patch
-     use LandunitType , only : lun
-     use landunit_varcon, only : istsoil
-     use SoilHydrologyMod, only : CalcSectorwaterSpecificYield, WithdrawGroundwaterSectorwater
+   !-----------------------------------------------------------------------
+subroutine CalcAndWithdrawSectorWaterFluxes(bounds, soilhydrology_inst, sectorwater_inst, water_inst, volr, rof_prognostic)
+   !
+   ! !DESCRIPTION:
+   ! Calculates sectorwal water withdrawal, consumption and return flow fluxes;
+   ! Updates the fields which are sent to the routing model through the coupler;
+   !
+   ! !USES:
+   use clm_time_manager    , only : is_beg_curr_day
+   use ColumnType   , only : col
+   use PatchType    , only : patch
+   use LandunitType , only : lun
+   use landunit_varcon, only : istsoil
 
-     !
-     ! !ARGUMENTS:
-     integer  :: g, p, l, c  ! gridcell index
-     type(bounds_type)              , intent(in)    :: bounds
-     type(soilhydrology_type)       , intent(in)    :: soilhydrology_inst
-     type(soilstate_type)           , intent(in)    :: soilstate_inst
-     type(sectorwater_type)         , intent(inout) :: sectorwater_inst
-     type(water_type)               , intent(inout) :: water_inst
+   !
+   ! !ARGUMENTS:
+   integer  :: g, p, l, c  ! gridcell index
+   type(bounds_type)              , intent(in)    :: bounds
+   type(soilhydrology_type)       , intent(in)    :: soilhydrology_inst
+   type(sectorwater_type)         , intent(inout) :: sectorwater_inst
+   type(water_type)               , intent(inout) :: water_inst
 
-     ! river water volume (m3) (ignored if rof_prognostic is .false.)
-     real(r8), intent(in) :: volr( bounds%begg: )
+   ! river water volume (m3) (ignored if rof_prognostic is .false.)
+   real(r8), intent(in) :: volr( bounds%begg: )
 
-     ! gridcell total consumption related to human water usage
-     real(r8), pointer :: total_cons_from_input(:) ![mm/s]
+   ! gridcell total consumption related to human water usage
+   real(r8), pointer :: total_cons(:)
 
-     ! 
-     real(r8), pointer :: total_cons_remaining(:)  ![mm]
+   ! whether we're running with a prognostic ROF component; this is needed to determine
+   ! whether we can limit irrigation based on river volume.
+   logical, intent(in) :: rof_prognostic
 
-     ! whether we're running with a prognostic ROF component; this is needed to determine
-     ! whether we can limit irrigation based on river volume.
-     logical, intent(in) :: rof_prognostic
+   ! !LOCAL VARIABLES:
+   integer :: i  ! tracer index
 
-     real(r8), dimension(bounds%begc:bounds%endc) :: sum_s_y
 
-     ! !LOCAL VARIABLES:
-     integer :: i  ! tracer index
-     real(r8), parameter :: m3_over_km2_to_mm = 1.e-3_r8
-     real(r8) :: dom_daily, liv_daily, elec_daily, mfc_daily, min_daily ! [mm]
-     real(r8) :: dom_daily_gw, liv_daily_gw, elec_daily_gw, mfc_daily_gw, min_daily_gw ! [mm]
+   character(len=*), parameter :: subname = 'CalcAndWithdrawSectorWaterFluxes'
+   !-----------------------------------------------------------------------
 
-     
 
-     character(len=*), parameter :: subname = 'CalcAndWithdrawSectorWaterFluxes'
-     !-----------------------------------------------------------------------
+   ! Read withdrawal and consumption data from input surfdata
+   ! Compute the withdrawal, consumption and return flow (expected and actual)
+   ! To limit computation time, call this subroutine only once a day (we assume uniform demand throughout a day)
 
-     ! Read withdrawal and consumption data from input surfdata
-     ! Compute the withdrawal, consumption and return flow (expected and actual)
-     ! To limit computation time, call this subroutine only once a day (we assume uniform demand throughout a day)
+   allocate(total_cons(bounds%begg:bounds%endg))
 
-     allocate(total_cons(bounds%begg:bounds%endg))
+   if (is_beg_curr_day()) then
+      call sectorwater_inst%CalcSectorWaterNeeded(bounds, volr, rof_prognostic)
+   endif
 
-     if (is_beg_curr_day()) then
-        call sectorwater_inst%CalcSectorWaterNeeded(bounds, volr, rof_prognostic)
-     endif
+   ! Compute total sectoral consumption
+   ! This consumption flux will be applied on surface soil of the natural vegetation column
+   ! The user should make sure that the water usage input data have no NaN values (and use 0 instead)
+   ! This way the sum of the sectors do not risk to become NaN, because one of the sectors have no data for given location
+   ! Of course this kind of problem can be overcomed in the code directly, but there is no good reason why it shouldn't be done at the level of input data
+   do g = bounds%begg, bounds%endg 
+      ! Sector water total consumption for the gridcell g:
+      total_cons(g) = sectorwater_inst%dom_cons_actual_grc(g) + sectorwater_inst%liv_cons_actual_grc(g) + sectorwater_inst%elec_cons_actual_grc(g) + &
+                      sectorwater_inst%mfc_cons_actual_grc(g)  + sectorwater_inst%min_cons_actual_grc(g)
+   end do
 
-     ! Compute total sectoral consumption
-     ! This consumption flux will be applied on surface soil of the natural vegetation column
-     ! The user should make sure that the water usage input data have no NaN values (and use 0 instead)
-     ! This way the sum of the sectors do not risk to become NaN, because one of the sectors have no data for given location
-     ! Of course this kind of problem can be overcomed in the code directly, but there is no good reason why it shouldn't be done at the level of input data
-     do g = bounds%begg, bounds%endg 
-        ! Sector water total consumption for the gridcell g:
-        total_cons_from_input(g) = sectorwater_inst%dom_cons_actual_grc(g) + sectorwater_inst%liv_cons_actual_grc(g) + sectorwater_inst%elec_cons_actual_grc(g) + &
-                       sectorwater_inst%mfc_cons_actual_grc(g)  + sectorwater_inst%min_cons_actual_grc(g)
-     end do
+   ! Update the qflx_sectorwater_col field corresponding to total sectoral consumption (except irrigation)
+   ! Here I am not sure if it is needed to have loop over all tracers (it seems that the tracers mechanism is not maintained anymore)
+   ! So I could in principle just use associate : w => water_inst%bulk_and_tracers(1) which correspond to bulk water.
+   ! To stay in aggreement with the legacy code, I am looping over the tracers.
+   do i = water_inst%bulk_and_tracers_beg, water_inst%bulk_and_tracers_end
+      associate(w => water_inst%bulk_and_tracers(i))
 
-     if (sectorwater_inst%UseGroundwaterSectorwater()) then
-        ! Calculate the sum of specific yields for each column
-        call CalcSectorwaterSpecificYield(bounds, num_soilc, filter_soilc, &
-           soilhydrology_inst, soilstate_inst, sum_s_y)
-     end if
+      do c = bounds%begc,bounds%endc
+         g = col%gridcell(c)
 
-     ! Update the qflx_sfc_sectorwater_col field corresponding to total sectoral consumption (except irrigation)
-     ! Here I am not sure if it is needed to have loop over all tracers (it seems that the tracers mechanism is not maintained anymore)
-     ! So I could in principle just use associate : w => water_inst%bulk_and_tracers(1) which correspond to bulk water.
-     ! To stay in aggreement with the legacy code, I am looping over the tracers.
-     do i = water_inst%bulk_and_tracers_beg, water_inst%bulk_and_tracers_end
-        associate(w => water_inst%bulk_and_tracers(i))
-  
-        do c = bounds%begc,bounds%endc
-           g = col%gridcell(c)
-           
-           dom_daily = water_inst%qflx_sfc_dom_cons_col(c) * 86400.0_r8
-           liv_daily = water_inst%qflx_sfc_liv_cons_col(c) * 86400.0_r8
-           elec_daily = water_inst%qflx_sfc_elec_cons_col(c) * 86400.0_r8
-           mfc_daily = water_inst%qflx_sfc_mfc_cons_col(c) * 86400.0_r8
-           min_daily = water_inst%qflx_sfc_min_cons_col(c) * 86400.0_r8
+         if (col%lun_itype(c) == istsoil) then
+            w%waterflux_inst%qflx_sectorwater_col(c) = total_cons(g)
+         else
+            w%waterflux_inst%qflx_sectorwater_col(c) = 0._r8
+         end if
 
-           dom_daily_gw = water_inst%qflx_gw_uncon_dom_cons_col(c) * 86400.0_r8
-           liv_daily_gw = water_inst%qflx_gw_uncon_liv_cons_col(c) * 86400.0_r8
-           elec_daily_gw = water_inst%qflx_gw_uncon_elec_cons_col(c) * 86400.0_r8
-           mfc_daily_gw = water_inst%qflx_gw_uncon_mfc_cons_col(c) * 86400.0_r8
-           min_daily_gw = water_inst%qflx_gw_uncon_min_cons_col(c) * 86400.0_r8
+      end do
+      end associate
+   end do
 
-           ! Default values
-           dom_sfc_cons_limited_ratio_col(c) = 1.0_r8
-           liv_sfc_cons_limited_ratio_col(c) = 1.0_r8
-           elec_sfc_cons_limited_ratio_col(c) = 1.0_r8
-           mfc_sfc_cons_limited_ratio_col(c) = 1.0_r8
-           min_sfc_cons_limited_ratio_col(c) = 1.0_r8
+deallocate(total_cons)
 
-           ! Default values
-           dom_gw_cons_limited_ratio_col(c) = 1.0_r8
-           liv_gw_cons_limited_ratio_col(c) = 1.0_r8
-           elec_gw_cons_limited_ratio_col(c) = 1.0_r8
-           mfc_gw_cons_limited_ratio_col(c) = 1.0_r8
-           min_gw_cons_limited_ratio_col(c) = 1.0_r8
-
-           if (col%lun_itype(c) == istsoil) then
-               if(sum_s_y>0.0_r8) then
-                  avail_s_y = sum_s_y(c) * 0.5_r8 ! limit the gw for sectoral water use to 50%
-
-                  if (volr(g)>0.0_r8) then ! river: +, groundwater: +
-                     avail_volr = volr(g) * (1.0_r8 - sectorwater_inst%sectorwater_river_volume_threshold)
-                     avail_volr_mm = avail_volr / grc%area(g) * m3_over_km2_to_mm
-
-                     ! check they have enough water for all sectors
-                     if (total_cons * 86400.0  < (avail_volr_mm + avail_s_y)) then
-                        water_inst%qflx_gw_uncon_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g) &
-                        * avail_s_y / (avail_volr_mm + avail_s_y)
-                        water_inst%qflx_gw_uncon_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g) &
-                        * avail_s_y / (avail_volr_mm + avail_s_y)
-                        water_inst%qflx_gw_uncon_elec_cons_col(c) = sectorwater_inst%elec_cons_actual_grc(g) &
-                        * avail_s_y / (avail_volr_mm + avail_s_y)
-                        water_inst%qflx_gw_uncon_mfc_cons_col(c) = sectorwater_inst%mfc_cons_actual_grc(g) &
-                        * avail_s_y / (avail_volr_mm + avail_s_y)
-                        water_inst%qflx_gw_uncon_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g) &
-                        * avail_s_y / (avail_volr_mm + avail_s_y)
-
-                        water_inst%qflx_sfc_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g) - &
-                        water_inst%qflx_gw_uncon_dom_cons_col(c)
-                        water_inst%qflx_sfc_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g) - &
-                        water_inst%qflx_gw_uncon_liv_cons_col(c)
-                        water_inst%qflx_sfc_elec_cons_col(c) = sectorwater_inst%elec_cons_actual_grc(g) - &
-                        water_inst%qflx_gw_uncon_elec_cons_col(c)
-                        water_inst%qflx_sfc_mfc_cons_col(c) = sectorwater_inst%mfc_cons_actual_grc(g) - &
-                        water_inst%qflx_gw_uncon_mfc_cons_col(c)
-                        water_inst%qflx_sfc_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g) - &
-                        water_inst%qflx_gw_uncon_min_cons_col(c)
-                     
-                     ! All sectors are not entirely satisfied, so need to limit the consumption
-                     else 
-                        ! considering that the sectoral water is net consumption and 
-                        ! the return flow of sectoral water use except irrigation is from surface water,
-                        ! we will allocate the available water to surface water first
-                        ! and then allocate the remaining water to groundwater
-
-                        if (dom_daily > avail_volr_mm) then
-                           dom_sfc_cons_limited_ratio_col(c) = dom_daily / avail_volr_mm
-                           liv_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                           elec_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                           mfc_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                           min_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                        else if (dom_daily + liv_daily > avail_volr_mm) then
-                           liv_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily) / liv_daily
-                        else if (dom_daily + liv_daily + elec_daily > avail_volr_mm) then
-                           elec_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily - liv_daily) / elec_daily
-                        else if (dom_daily + liv_daily + elec_daily + mfc_daily > avail_volr_mm) then
-                           mfc_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily - liv_daily - elec_daily) / mfc_daily
-                        else if (dom_daily + liv_daily + elec_daily + mfc_daily + min_daily > avail_volr_mm) then
-                           min_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily - liv_daily - elec_daily - mfc_daily) / min_daily
-                        end if
-
-                        total_cons_remaining(c) = total_cons_from_input(g) * 86400.0_r8 - dom_daily * dom_sfc_cons_limited_ratio_col(c) &
-                        - liv_daily * liv_sfc_cons_limited_ratio_col(c) - elec_daily * elec_sfc_cons_limited_ratio_col(c) &
-                        - mfc_daily * mfc_sfc_cons_limited_ratio_col(c) - min_daily * min_sfc_cons_limited_ratio_col(c)
-
-                        if (total_cons_remaining(c)>0.0_r8) then
-
-                           if (dom_daily_gw > avail_s_y) then
-                              dom_gw_cons_limited_ratio_col(c) = dom_daily_gw / avail_s_y
-                              liv_gw_cons_limited_ratio_col(c) = 0.0_r8
-                              elec_gw_cons_limited_ratio_col(c) = 0.0_r8
-                              mfc_gw_cons_limited_ratio_col(c) = 0.0_r8
-                              min_gw_cons_limited_ratio_col(c) = 0.0_r8
-                           else if (dom_daily_gw + liv_daily_gw > avail_s_y) then
-                              liv_gw_cons_limited_ratio_col(c) = (avail_s_y - dom_daily_gw) / liv_daily_gw
-                           else if (dom_daily_gw + liv_daily_gw + elec_daily_gw > avail_s_y) then
-                              elec_gw_cons_limited_ratio_col(c) = (avail_s_y - dom_daily_gw - liv_daily_gw) / elec_daily_gw
-                           else if (dom_daily_gw + liv_daily_gw + elec_daily_gw + mfc_daily_gw > avail_s_y) then
-                              mfc_gw_cons_limited_ratio_col(c) = (avail_s_y - dom_daily_gw - liv_daily_gw - elec_daily_gw) / mfc_daily_gw
-                           else if (dom_daily_gw + liv_daily_gw + elec_daily_gw + mfc_daily_gw + min_daily_gw > avail_s_y) then
-                              min_gw_cons_limited_ratio_col(c) = (avail_s_y - dom_daily_gw - liv_daily_gw - elec_daily_gw - mfc_daily_gw) / min_daily_gw
-                           end if
-
-                           ! Check does it still remain some water to be allocated to confined groundwater 
-                           total_cons_remaining(c) = total_cons_remaining(c) - dom_daily_gw * dom_gw_cons_limited_ratio_col(c) &
-                           - liv_daily_gw * liv_gw_cons_limited_ratio_col(c) - elec_daily_gw * elec_gw_cons_limited_ratio_col(c) &
-                           - mfc_daily_gw * mfc_gw_cons_limited_ratio_col(c) - min_daily_gw * min_gw_cons_limited_ratio_col(c)
-                        
-                           if (total_cons_remaining(c)>0.0_r8) then
-                              water_inst%qflx_gw_con_sectorwater_col(c) = total_cons_remaining(c) / 86400.0_r8
-                           end if
-                           total_cons_remaining(c) = 0.0_r8
-                        else
-                        end if
-
-                  else ! river: 0, groundwater: +
-                     dom_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                     liv_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                     elec_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                     mfc_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                     min_sfc_cons_limited_ratio_col(c) = 0.0_r8
-
-                     if (total_cons * 86400.0  < avail_s_y) then
-                        water_inst%qflx_gw_uncon_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g) 
-                        water_inst%qflx_gw_uncon_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g)
-                        water_inst%qflx_gw_uncon_elec_cons_col(c) = sectorwater_inst%elec_cons_actual_grc(g)
-                        water_inst%qflx_gw_uncon_mfc_cons_col(c) = sectorwater_inst%mfc_cons_actual_grc(g)
-                        water_inst%qflx_gw_uncon_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g)
-                     else
-                        if (dom_daily_gw > avail_s_y) then
-                           dom_gw_cons_limited_ratio_col(c) = dom_daily_gw / avail_s_y
-                           liv_gw_cons_limited_ratio_col(c) = 0.0_r8
-                           elec_gw_cons_limited_ratio_col(c) = 0.0_r8
-                           mfc_gw_cons_limited_ratio_col(c) = 0.0_r8
-                           min_gw_cons_limited_ratio_col(c) = 0.0_r8
-                        else if (dom_daily_gw + liv_daily_gw > avail_s_y) then
-                           liv_gw_cons_limited_ratio_col(c) = (avail_s_y - dom_daily_gw) / liv_daily_gw
-                        else if (dom_daily_gw + liv_daily_gw + elec_daily_gw > avail_s_y) then
-                           elec_gw_cons_limited_ratio_col(c) = (avail_s_y - dom_daily_gw - liv_daily_gw) / elec_daily_gw
-                        else if (dom_daily_gw + liv_daily_gw + elec_daily_gw + mfc_daily_gw > avail_s_y) then
-                           mfc_gw_cons_limited_ratio_col(c) = (avail_s_y - dom_daily_gw - liv_daily_gw - elec_daily_gw) / mfc_daily_gw
-                        else if (dom_daily_gw + liv_daily_gw + elec_daily_gw + mfc_daily_gw + min_daily_gw > avail_s_y) then
-                           min_gw_cons_limited_ratio_col(c) = (avail_s_y - dom_daily_gw - liv_daily_gw - elec_daily_gw - mfc_daily_gw) / min_daily_gw
-                        end if
-
-                        ! Check does it still remain some water to be allocated to confined groundwater 
-                        total_cons_remaining(c) = total_cons_from_input(g) - dom_daily_gw * dom_gw_cons_limited_ratio_col(c) &
-                        - liv_daily_gw * liv_gw_cons_limited_ratio_col(c) - elec_daily_gw * elec_gw_cons_limited_ratio_col(c) &
-                        - mfc_daily_gw * mfc_gw_cons_limited_ratio_col(c) - min_daily_gw * min_gw_cons_limited_ratio_col(c)
-                     
-                        if (total_cons_remaining(c)>0.0_r8) then
-                           water_inst%qflx_gw_con_sectorwater_col(c) = total_cons_remaining(c) / 86400.0_r8
-                        end if
-
-                     end if
-                  end if   
-               else 
-                  dom_gw_cons_limited_ratio_col(c) = 0.0_r8
-                  liv_gw_cons_limited_ratio_col(c) = 0.0_r8
-                  elec_gw_cons_limited_ratio_col(c) = 0.0_r8
-                  mfc_gw_cons_limited_ratio_col(c) = 0.0_r8
-                  min_gw_cons_limited_ratio_col(c) = 0.0_r8
-
-                  if (volr(g)>0.0_r8) then ! river: +, groundwater: 0
-                     avail_volr = volr(g) * (1.0_r8 - sectorwater_inst%sectorwater_river_volume_threshold)
-                     avail_volr_mm = avail_volr / grc%area(g) * m3_over_km2_to_mm
-
-                     ! check they have enough water for all sectors
-                     if (total_cons * 86400.0  < avail_volr_mm) then
-                        water_inst%qflx_sfc_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g)
-                        water_inst%qflx_sfc_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g)
-                        water_inst%qflx_sfc_elec_cons_col(c) = sectorwater_inst%elec_cons_actual_grc(g)
-                        water_inst%qflx_sfc_mfc_cons_col(c) = sectorwater_inst%mfc_cons_actual_grc(g)
-                        water_inst%qflx_sfc_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g)
-                     else
-                        if (dom_daily > avail_volr_mm) then
-                           dom_sfc_cons_limited_ratio_col(c) = dom_daily / avail_volr_mm
-                           liv_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                           elec_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                           mfc_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                           min_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                        else if (dom_daily + liv_daily > avail_volr_mm) then
-                           liv_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily) / liv_daily
-                        else if (dom_daily + liv_daily + elec_daily > avail_volr_mm) then
-                           elec_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily - liv_daily) / elec_daily
-                        else if (dom_daily + liv_daily + elec_daily + mfc_daily > avail_volr_mm) then
-                           mfc_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily - liv_daily - elec_daily) / mfc_daily
-                        else if (dom_daily + liv_daily + elec_daily + mfc_daily + min_daily > avail_volr_mm) then
-                           min_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily - liv_daily - elec_daily - mfc_daily) / min_daily
-                        end if
-
-                  else ! river: 0, groundwater: 0
-                     dom_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                     liv_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                     elec_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                     mfc_sfc_cons_limited_ratio_col(c) = 0.0_r8
-                     min_sfc_cons_limited_ratio_col(c) = 0.0_r8
-
-                     water_inst%qflx_gw_con_sectorwater_col(c) = total_cons_from_input(g)
-                  end if
-               end if
-               w%waterflux_inst%qflx_sfc_dom_cons_col(c)= water_inst%qflx_sfc_dom_cons_col(c) * dom_sfc_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_sfc_liv_cons_col(c)= water_inst%qflx_sfc_liv_cons_col(c) * liv_sfc_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_sfc_elec_cons_col(c)= water_inst%qflx_sfc_elec_cons_col(c) * elec_sfc_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_sfc_mfc_cons_col(c)= water_inst%qflx_sfc_mfc_cons_col(c) * mfc_sfc_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_sfc_min_cons_col(c)= water_inst%qflx_sfc_min_cons_col(c) * min_sfc_cons_limited_ratio_col(c)
-
-               w%waterflux_inst%qflx_gw_uncon_dom_cons_col(c)= water_inst%qflx_gw_uncon_dom_cons_col(c) * dom_gw_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_gw_uncon_liv_cons_col(c)= water_inst%qflx_gw_uncon_liv_cons_col(c) * liv_gw_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_gw_uncon_elec_cons_col(c)= water_inst%qflx_gw_uncon_elec_cons_col(c) * elec_gw_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_gw_uncon_mfc_cons_col(c)= water_inst%qflx_gw_uncon_mfc_cons_col(c) * mfc_gw_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_gw_uncon_min_cons_col(c)= water_inst%qflx_gw_uncon_min_cons_col(c) * min_gw_cons_limited_ratio_col(c)
-
-               w%waterflux_inst%qflx_gw_con_sectorwater_col(c)= water_inst%qflx_gw_con_sectorwater_col(c)
-
-               w%waterflux_inst%qflx_sfc_sectorwater_col(c) = w%waterflux_inst%qflx_sfc_dom_cons_col(c) + &
-               w%waterflux_inst%qflx_sfc_liv_cons_col(c) + w%waterflux_inst%qflx_sfc_elec_cons_col(c) + &
-               w%waterflux_inst%qflx_sfc_mfc_cons_col(c) + w%waterflux_inst%qflx_sfc_min_cons_col(c)
-
-               w%waterflux_inst%qflx_gw_uncon_sectorwater_col(c) = w%waterflux_inst%qflx_gw_uncon_dom_cons_col(c) + &
-               w%waterflux_inst%qflx_gw_uncon_liv_cons_col(c) + w%waterflux_inst%qflx_gw_uncon_elec_cons_col(c) + &
-               w%waterflux_inst%qflx_gw_uncon_mfc_cons_col(c) + w%waterflux_inst%qflx_gw_uncon_min_cons_col(c)
-               
-               sectorwater_inst%sectorwater_total_sfc_actual_withd(g) = w%waterflux_inst%qflx_sfc_sectorwater_col(c)
-
-            else ! not soil column
-               w%waterflux_inst%qflx_sfc_sectorwater_col(c) = 0.0_r8
-               w%waterflux_inst%qflx_gw_uncon_sectorwater_col(c) = 0.0_r8
-               w%waterflux_inst%qflx_gw_con_sectorwater_col(c) = 0.0_r8
-
-               w%waterflux_inst%qflx_sfc_dom_cons_col(c) = 0.0_r8
-               w%waterflux_inst%qflx_sfc_liv_cons_col(c) = 0.0_r8
-               w%waterflux_inst%qflx_sfc_elec_cons_col(c) = 0.0_r8
-               w%waterflux_inst%qflx_sfc_mfc_cons_col(c) = 0.0_r8
-               w%waterflux_inst%qflx_sfc_min_cons_col(c) = 0.0_r8
-
-               w%waterflux_inst%qflx_gw_uncon_dom_cons_col(c) = 0.0_r8
-               w%waterflux_inst%qflx_gw_uncon_liv_cons_col(c) = 0.0_r8
-               w%waterflux_inst%qflx_gw_uncon_elec_cons_col(c) = 0.0_r8
-               w%waterflux_inst%qflx_gw_uncon_mfc_cons_col(c) = 0.0_r8
-               w%waterflux_inst%qflx_gw_uncon_min_cons_col(c) = 0.0_r8
-
-               sectorwater_inst%sectorwater_total_sfc_actual_withd(g) = 0.0_r8
-            end if
-        end do
-        end associate
-     end do
-
-     ! Remove groundwater sectorwater
-     if (sectorwater_inst%UseGroundwaterSectorwater()) then
-        do i = water_inst%bulk_and_tracers_beg, water_inst%bulk_and_tracers_end
-           call WithdrawGroundwaterSectorwater(bounds, num_soilc, filter_soilc, &
-                soilhydrology_inst, soilstate_inst, &
-                water_inst%bulk_and_tracers(i)%waterflux_inst, & ! for fluxes
-                water_inst%bulk_and_tracers(i)%waterstate_inst, &  ! for state
-                qflx_gw_uncon_sectorwater_lyr=qflx_gw_uncon_sectorwater_lyr_col(bounds%begc,bounds%endc,:))
-        end do
-     end if
-
-  deallocate(total_cons)
-
-  end subroutine CalcAndWithdrawSectorWaterFluxes
+end subroutine CalcAndWithdrawSectorWaterFluxes
 
   !-----------------------------------------------------------------------
   subroutine CalcAndWithdrawIrrigationFluxes(bounds, &

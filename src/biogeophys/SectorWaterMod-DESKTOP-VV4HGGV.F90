@@ -42,13 +42,9 @@ module SectorWaterMod
        ! N.B. Each new line represent the path to a monthly input dataset for the given year. It is the user responsability to make sure that the inputs path are given in the right consecutive order from first to last year.
        ! N.B. Make sure that there is no NaN values in your input files for the sector water usage variables. Instead of NaN values, use 0.
        character(len=256) :: path_sectorwater_input_data
-
-       ! use groundwater supply for sectorwater (in addition to surface water)
-       logical :: use_groundwater_sectorwater
  end type sectorwater_params_type
  
  
-
  type, public :: sectorwater_type
        ! private
        ! Private data members; set in initialization:
@@ -101,7 +97,7 @@ module SectorWaterMod
        real(r8), pointer :: min_cons_actual_grc       (:) ! actual consumption flux for the day  [mm/s]
        real(r8), pointer :: min_rf_actual_grc         (:) ! actual return flow flux for the day  [mm/s]
 
-       real(r8), pointer :: sectorwater_total_sfc_actual_withd (:) ! total actual water withdrawal for all sectors (except irrigation) during current day [m3]
+       real(r8), pointer :: sectorwater_total_actual_withd (:) ! total actual water withdrawal for all sectors (except irrigation) during current day [m3]
 
        
        
@@ -111,7 +107,6 @@ module SectorWaterMod
        procedure, public :: ReadSectorWaterData
        procedure, public :: CalcSectorWaterNeeded
        procedure, public :: Clean => SectorWaterClean ! deallocate memory
-       procedure, public :: UseGroundwaterSectorwater ! Returns true if groundwater sectorwater enabled
 
        ! Public routines to be added:
        ! procedure, public :: Restart
@@ -143,8 +138,7 @@ module SectorWaterMod
  
     !-----------------------------------------------------------------------
      function sectorwater_params_constructor(sectorwater_river_volume_threshold, &
-          limit_sectorwater_if_rof_enabled, path_sectorwater_input_data,  &
-          use_groundwater_sectorwater) &
+          limit_sectorwater_if_rof_enabled, path_sectorwater_input_data) &
           result(this)
        !
        ! !DESCRIPTION:
@@ -156,7 +150,6 @@ module SectorWaterMod
        type(sectorwater_params_type) :: this  ! function result
        real(r8), intent(in) :: sectorwater_river_volume_threshold
        logical , intent(in) :: limit_sectorwater_if_rof_enabled
-       logical , intent(in) :: use_groundwater_sectorwater
        character(len=256), intent(in) :: path_sectorwater_input_data
        !
        ! !LOCAL VARIABLES:
@@ -165,7 +158,6 @@ module SectorWaterMod
        !-----------------------------------------------------------------------
        this%sectorwater_river_volume_threshold = sectorwater_river_volume_threshold
        this%limit_sectorwater_if_rof_enabled = limit_sectorwater_if_rof_enabled
-       this%use_groundwater_sectorwater = use_groundwater_sectorwater
        this%path_sectorwater_input_data = path_sectorwater_input_data
 
      end function sectorwater_params_constructor
@@ -207,7 +199,6 @@ module SectorWaterMod
           ! temporary variables corresponding to the components of sectorwater_params_type
           real(r8) :: sectorwater_river_volume_threshold
           logical  :: limit_sectorwater_if_rof_enabled
-          logical  :: use_groundwater_sectorwater
           character(len=256) :: path_sectorwater_input_data
           integer  :: ierr                 ! error code
           integer  :: unitn                ! unit for namelist file
@@ -216,14 +207,12 @@ module SectorWaterMod
           character(len=*), parameter :: subname = 'ReadNamelist'
           !-----------------------------------------------------------------------
  
-          namelist /sectorwater_inparm/ sectorwater_river_volume_threshold, limit_sectorwater_if_rof_enabled, &
-          use_groundwater_sectorwater, path_sectorwater_input_data
+          namelist /sectorwater_inparm/ sectorwater_river_volume_threshold, limit_sectorwater_if_rof_enabled, path_sectorwater_input_data
     
           ! Initialize options to garbage defaults, forcing all to be specified explicitly in
           ! order to get reasonable results
           sectorwater_river_volume_threshold = nan
           limit_sectorwater_if_rof_enabled = .false.
-          use_groundwater_sectorwater = .false.
           path_sectorwater_input_data = ' '
  
           if (masterproc) then
@@ -248,12 +237,10 @@ module SectorWaterMod
 
           call shr_mpi_bcast(sectorwater_river_volume_threshold, mpicom)
           call shr_mpi_bcast(limit_sectorwater_if_rof_enabled, mpicom)
-          call shr_mpi_bcast(use_groundwater_sectorwater, mpicom)
           call shr_mpi_bcast(path_sectorwater_input_data, mpicom)
 
           this%params = sectorwater_params_type(sectorwater_river_volume_threshold = sectorwater_river_volume_threshold, &
           limit_sectorwater_if_rof_enabled = limit_sectorwater_if_rof_enabled, &
-          use_groundwater_sectorwater = use_groundwater_sectorwater, &
           path_sectorwater_input_data = path_sectorwater_input_data)
           
           if (masterproc) then
@@ -265,7 +252,6 @@ module SectorWaterMod
                if (limit_sectorwater_if_rof_enabled) then
                     write(iulog,*) 'sectorwater_river_volume_threshold = ', sectorwater_river_volume_threshold
                end if
-               write(iulog,*) 'use_groundwater_sectorwater = ', use_groundwater_sectorwater
                write(iulog,*) 'path_sectorwater_input_data = ', path_sectorwater_input_data
                write(iulog,*) ' '
           end if
@@ -293,8 +279,7 @@ module SectorWaterMod
           
           associate( &
                sectorwater_river_volume_threshold => this%params%sectorwater_river_volume_threshold, &
-               limit_sectorwater_if_rof_enabled => this%params%limit_sectorwater_if_rof_enabled, &
-               use_groundwater_sectorwater => this%params%use_groundwater_sectorwater)
+               limit_sectorwater_if_rof_enabled => this%params%limit_sectorwater_if_rof_enabled)
           
           if (limit_sectorwater_if_rof_enabled) then
                if (sectorwater_river_volume_threshold < 0._r8 .or. sectorwater_river_volume_threshold > 1._r8) then
@@ -303,19 +288,6 @@ module SectorWaterMod
                     call endrun(msg=' ERROR: sectorwater_river_volume_threshold must be between 0 and 1 ' // &
                          errMsg(sourcefile, __LINE__))
                end if
-          end if
-
-          if (use_groundwater_sectorwater .and. .not. limit_sectorwater_if_rof_enabled) then
-               write(iulog,*) ' ERROR: use_groundwater_sectorwater only makes sense if limit_sectorwater_if_rof_enabled is set.'
-               write(iulog,*) '(If limit_sectorwater_if_rof_enabled is .false., then groundwater extraction will never be invoked.)'
-               call endrun(msg=' ERROR: use_groundwater_sectorwater only makes sense if limit_sectorwater_if_rof_enabled is set' // &
-                    errMsg(sourcefile, __LINE__))
-          end if
-        
-          if (use_aquifer_layer .and. use_groundwater_sectorwater) then
-               write(iulog,*) ' ERROR: use_groundwater_sectorwater and use_aquifer_layer may not be used simultaneously'
-               call endrun(msg=' ERROR: use_groundwater_sectorwater and use_aquifer_layer cannot both be set to true' // &
-                    errMsg(sourcefile, __LINE__))
           end if
           end associate
  
@@ -382,7 +354,7 @@ module SectorWaterMod
           allocate(this%min_cons_actual_grc (begg:endg))                ; this%min_cons_actual_grc            (:)   = 0
           allocate(this%min_rf_actual_grc (begg:endg))                  ; this%min_rf_actual_grc              (:)   = 0
 
-          allocate(this%sectorwater_total_sfc_actual_withd (begg:endg))     ; this%sectorwater_total_sfc_actual_withd (:)   = 0
+          allocate(this%sectorwater_total_actual_withd (begg:endg))     ; this%sectorwater_total_actual_withd (:)   = 0
 
      end subroutine SectorWaterInitAllocate
  
@@ -647,7 +619,7 @@ module SectorWaterMod
           this%mfc_rf_actual_grc(bounds%begg:bounds%endg)        = 0._r8
           this%min_rf_actual_grc(bounds%begg:bounds%endg)        = 0._r8
 
-          this%sectorwater_total_sfc_actual_withd(bounds%begg:bounds%endg)        = 0._r8
+          this%sectorwater_total_actual_withd(bounds%begg:bounds%endg)        = 0._r8
 
      
      end subroutine SectorWaterInitCold
@@ -706,7 +678,7 @@ module SectorWaterMod
           deallocate(this%min_cons_actual_grc)
           deallocate(this%min_rf_actual_grc)
 
-          deallocate(this%sectorwater_total_sfc_actual_withd)
+          deallocate(this%sectorwater_total_actual_withd)
 
 
      end subroutine sectorWaterClean
@@ -1109,9 +1081,9 @@ module SectorWaterMod
 
                ! Total actual withdrawal volume in m3 for all sectors during the current day
                ! Total actual sectoral withdrawal volume will be used to constrain how much water is available for irrigation taking into acount VOLR capacity (if limit on abstractions is active)
-               !this%sectorwater_total_actual_withd(g) =  (this%dom_withd_actual_grc(g) + this%liv_withd_actual_grc(g) + &
-               !                                           this%elec_withd_actual_grc(g) + this%mfc_withd_actual_grc(g) + &
-               !                                           this%min_withd_actual_grc(g)) * mm_to_m3_over_km2 * grc%area(g) * 86400._r8
+               this%sectorwater_total_actual_withd(g) =  (this%dom_withd_actual_grc(g) + this%liv_withd_actual_grc(g) + &
+                                                          this%elec_withd_actual_grc(g) + this%mfc_withd_actual_grc(g) + &
+                                                          this%min_withd_actual_grc(g)) * mm_to_m3_over_km2 * grc%area(g) * 86400._r8
           end do
           write (iulog,*) 'end of CalcSectorWaterNeeded'
      end subroutine CalcSectorWaterNeeded
@@ -1268,22 +1240,5 @@ module SectorWaterMod
           end do
           write (iulog,*) 'end of CalcSectorDemandVolrLimited'
      end subroutine CalcSectorDemandVolrLimited
-
-  !-----------------------------------------------------------------------
-  function UseGroundwaterSectorwater(this)
-    !
-    ! !DESCRIPTION:
-    ! Returns true if we're using groundwater sectorwater in this run
-    !
-    ! !ARGUMENTS:
-    implicit none
-    class(sectorwater_type), intent(in) :: this
-
-    logical :: UseGroundwaterSectorwater  ! function result
-    !-----------------------------------------------------------------------
-
-    UseGroundwaterSectorwater = this%params%use_sectorwater_irrigation
-    
-  end function UseGroundwaterSectorwater
  
  end module SectorWaterMod

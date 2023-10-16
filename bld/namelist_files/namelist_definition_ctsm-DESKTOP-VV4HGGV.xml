@@ -519,16 +519,6 @@ The right format of the .txt file is:
  N.B. Each new line represent the path to a monthly input dataset for the given year. It is the user responsability to make sure that the inputs path are given in the right consecutive order from first to last year.
 </entry>
 
-<entry id="use_groundwater_sectorwater" type="logical" category="clm_physics"
-       group="sectorwater_inparm" valid_values="" >
-If TRUE, supply sectorwater from groundwater (in addition to surface water).
-
-Can only be set if limit_sectorwater_if_rof_enabled is true (otherwise
-groundwater extraction is never invoked).
-
-Cannot be combined with lower_boundary_condition = 3 or 4
-</entry>
-
 <entry id="sectorwater" type="logical" category="clm_physics"
        group="clm_inparm"  >
 If TRUE, sector water usage will be active.
