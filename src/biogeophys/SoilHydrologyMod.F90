@@ -54,7 +54,7 @@ module SoilHydrologyMod
   public :: LateralFlowPowerLaw  ! Calculate lateral flow based on power law drainage function
   public :: RenewCondensation    ! Misc. corrections
   public :: CalcIrrigWithdrawals ! Calculate irrigation withdrawals from groundwater by layer
-  public :: CalcSectorwaterWithdrawals ! Calculate sectoral water use withdrawals from groundwater by layer
+  public :: CalcSectorwaterSpecificYield ! Calculate specific yield for allocate sectoral water use from groundwater by layer
   public :: WithdrawGroundwaterIrrigation   ! Remove groundwater irrigation from unconfined and confined aquifers
   public :: WithdrawGroundwaterSectorwater  ! Remove groundwater sectoral water use from unconfined and confined aquifers
   public :: readParams
