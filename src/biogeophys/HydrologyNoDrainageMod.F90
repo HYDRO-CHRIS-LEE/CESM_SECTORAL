@@ -49,7 +49,8 @@ Module HydrologyNoDrainageMod
 contains
 
   !-----------------------------------------------------------------------
-  subroutine CalcAndWithdrawSectorWaterFluxes(bounds, soilhydrology_inst, sectorwater_inst, water_inst, volr, rof_prognostic)
+  subroutine CalcAndWithdrawSectorWaterFluxes(bounds, num_soilc, filter_soilc,&
+   soilhydrology_inst,soilstate_inst, sectorwater_inst,  water_inst, volr, rof_prognostic)
      !
      ! !DESCRIPTION:
      ! Calculates sectorwal water withdrawal, consumption and return flow fluxes;
