@@ -50,7 +50,7 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine CalcAndWithdrawSectorWaterFluxes(bounds, num_soilc, filter_soilc,&
-   soilhydrology_inst,soilstate_inst, sectorwater_inst,  water_inst, volr, rof_prognostic)
+   soilhydrology_inst, soilstate_inst, sectorwater_inst,  water_inst, volr, rof_prognostic)
      !
      ! !DESCRIPTION:
      ! Calculates sectorwal water withdrawal, consumption and return flow fluxes;
@@ -68,6 +68,8 @@ contains
      ! !ARGUMENTS:
      integer  :: g, p, l, c  ! gridcell index
      type(bounds_type)              , intent(in)    :: bounds
+     integer                        , intent(in)    :: num_soilc       ! number of column soil points in column filter
+     integer                        , intent(in)    :: filter_soilc(:) ! column filter for soil points
      type(soilhydrology_type)       , intent(in)    :: soilhydrology_inst
      type(soilstate_type)           , intent(in)    :: soilstate_inst
      type(sectorwater_type)         , intent(inout) :: sectorwater_inst
@@ -103,7 +105,7 @@ contains
      ! Compute the withdrawal, consumption and return flow (expected and actual)
      ! To limit computation time, call this subroutine only once a day (we assume uniform demand throughout a day)
 
-     allocate(total_cons(bounds%begg:bounds%endg))
+     allocate(total_cons_from_input(bounds%begg:bounds%endg))
 
      if (is_beg_curr_day()) then
         call sectorwater_inst%CalcSectorWaterNeeded(bounds, volr, rof_prognostic)
@@ -171,7 +173,7 @@ contains
                      avail_volr_mm = avail_volr / grc%area(g) * m3_over_km2_to_mm
 
                      ! check they have enough water for all sectors
-                     if (total_cons * 86400.0  < (avail_volr_mm + avail_s_y)) then
+                     if (total_cons_from_input * 86400.0  < (avail_volr_mm + avail_s_y)) then
                         water_inst%qflx_gw_uncon_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g) &
                         * avail_s_y / (avail_volr_mm + avail_s_y)
                         water_inst%qflx_gw_uncon_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g) &
@@ -258,7 +260,7 @@ contains
                      mfc_sfc_cons_limited_ratio_col(c) = 0.0_r8
                      min_sfc_cons_limited_ratio_col(c) = 0.0_r8
 
-                     if (total_cons * 86400.0  < avail_s_y) then
+                     if (total_cons_from_input * 86400.0  < avail_s_y) then
                         water_inst%qflx_gw_uncon_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g) 
                         water_inst%qflx_gw_uncon_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g)
                         water_inst%qflx_gw_uncon_elec_cons_col(c) = sectorwater_inst%elec_cons_actual_grc(g)
@@ -304,7 +306,7 @@ contains
                      avail_volr_mm = avail_volr / grc%area(g) * m3_over_km2_to_mm
 
                      ! check they have enough water for all sectors
-                     if (total_cons * 86400.0  < avail_volr_mm) then
+                     if (total_cons_from_input * 86400.0  < avail_volr_mm) then
                         water_inst%qflx_sfc_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g)
                         water_inst%qflx_sfc_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g)
                         water_inst%qflx_sfc_elec_cons_col(c) = sectorwater_inst%elec_cons_actual_grc(g)
@@ -395,7 +397,7 @@ contains
         end do
      end if
 
-  deallocate(total_cons)
+  deallocate(total_cons_from_input)
 
   end subroutine CalcAndWithdrawSectorWaterFluxes
 
