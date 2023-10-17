@@ -56,6 +56,8 @@ module SectorWaterMod
        type(sectorwater_params_type) :: params
 
        integer :: dtime                ! land model time step (sec)
+       ! use groundwater supply for irrigation (in addition to surface water)
+       logical :: use_groundwater_sectorwater
  
        ! Private data members; time-varying:
        ! naming: dom = domestic, liv = livestock, elec = thermoelectric, mfc = manufacturing, min = mining
@@ -1288,7 +1290,7 @@ module SectorWaterMod
     logical :: UseGroundwaterSectorwater  ! function result
     !-----------------------------------------------------------------------
 
-    UseGroundwaterSectorwater = this%params%use_sectorwater_irrigation
+    UseGroundwaterSectorwater = this%params%use_groundwater_sectorwater
     
   end function UseGroundwaterSectorwater
  

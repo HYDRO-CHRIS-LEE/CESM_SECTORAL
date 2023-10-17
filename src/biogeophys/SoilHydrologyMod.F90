@@ -2601,6 +2601,11 @@ contains
      ! !LOCAL VARIABLES:
      integer  :: fc, c, j
      real(r8) :: dtime        ! land model time step (sec)
+     integer  :: jwt(bounds%begc:bounds%endc)            ! index of the soil layer right above the water table (-)
+     real(r8) :: sector_cons_remaining  ! mm H2O
+     real(r8) :: s_y
+     real(r8) :: available_water_layer   ! mm H2O
+     real(r8) :: sector_layer             ! mm H2O
 
      character(len=*), parameter :: subname = 'WithdrawGroundwaterSectorwater'
      !-----------------------------------------------------------------------
