@@ -138,17 +138,17 @@ contains
         do c = bounds%begc,bounds%endc
            g = col%gridcell(c)
            
-           dom_daily = water_inst%qflx_sfc_dom_cons_col(c) * 86400.0_r8
-           liv_daily = water_inst%qflx_sfc_liv_cons_col(c) * 86400.0_r8
-           elec_daily = water_inst%qflx_sfc_elec_cons_col(c) * 86400.0_r8
-           mfc_daily = water_inst%qflx_sfc_mfc_cons_col(c) * 86400.0_r8
-           min_daily = water_inst%qflx_sfc_min_cons_col(c) * 86400.0_r8
+           dom_daily = water_inst%waterfluxbulk_inst%qflx_sfc_dom_cons_col(c) * 86400.0_r8
+           liv_daily = water_inst%waterfluxbulk_inst%qflx_sfc_liv_cons_col(c) * 86400.0_r8
+           elec_daily = water_inst%waterfluxbulk_inst%qflx_sfc_elec_cons_col(c) * 86400.0_r8
+           mfc_daily = water_inst%waterfluxbulk_inst%qflx_sfc_mfc_cons_col(c) * 86400.0_r8
+           min_daily = water_inst%waterfluxbulk_inst%qflx_sfc_min_cons_col(c) * 86400.0_r8
 
-           dom_daily_gw = water_inst%qflx_gw_uncon_dom_cons_col(c) * 86400.0_r8
-           liv_daily_gw = water_inst%qflx_gw_uncon_liv_cons_col(c) * 86400.0_r8
-           elec_daily_gw = water_inst%qflx_gw_uncon_elec_cons_col(c) * 86400.0_r8
-           mfc_daily_gw = water_inst%qflx_gw_uncon_mfc_cons_col(c) * 86400.0_r8
-           min_daily_gw = water_inst%qflx_gw_uncon_min_cons_col(c) * 86400.0_r8
+           dom_daily_gw = water_inst%waterfluxbulk_inst%qflx_gw_uncon_dom_cons_col(c) * 86400.0_r8
+           liv_daily_gw = water_inst%waterfluxbulk_inst%qflx_gw_uncon_liv_cons_col(c) * 86400.0_r8
+           elec_daily_gw = water_inst%waterfluxbulk_inst%qflx_gw_uncon_elec_cons_col(c) * 86400.0_r8
+           mfc_daily_gw = water_inst%waterfluxbulk_inst%qflx_gw_uncon_mfc_cons_col(c) * 86400.0_r8
+           min_daily_gw = water_inst%waterfluxbulk_inst%qflx_gw_uncon_min_cons_col(c) * 86400.0_r8
 
            ! Default values
            dom_sfc_cons_limited_ratio_col(c) = 1.0_r8
@@ -174,27 +174,27 @@ contains
 
                      ! check they have enough water for all sectors
                      if (total_cons_from_input * 86400.0  < (avail_volr_mm + avail_s_y)) then
-                        water_inst%qflx_gw_uncon_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g) &
+                        water_inst%waterfluxbulk_inst%qflx_gw_uncon_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g) &
                         * avail_s_y / (avail_volr_mm + avail_s_y)
-                        water_inst%qflx_gw_uncon_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g) &
+                        water_inst%waterfluxbulk_inst%qflx_gw_uncon_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g) &
                         * avail_s_y / (avail_volr_mm + avail_s_y)
-                        water_inst%qflx_gw_uncon_elec_cons_col(c) = sectorwater_inst%elec_cons_actual_grc(g) &
+                        water_inst%waterfluxbulk_inst%qflx_gw_uncon_elec_cons_col(c) = sectorwater_inst%elec_cons_actual_grc(g) &
                         * avail_s_y / (avail_volr_mm + avail_s_y)
-                        water_inst%qflx_gw_uncon_mfc_cons_col(c) = sectorwater_inst%mfc_cons_actual_grc(g) &
+                        water_inst%waterfluxbulk_inst%qflx_gw_uncon_mfc_cons_col(c) = sectorwater_inst%mfc_cons_actual_grc(g) &
                         * avail_s_y / (avail_volr_mm + avail_s_y)
-                        water_inst%qflx_gw_uncon_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g) &
+                        water_inst%waterfluxbulk_inst%qflx_gw_uncon_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g) &
                         * avail_s_y / (avail_volr_mm + avail_s_y)
 
-                        water_inst%qflx_sfc_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g) - &
-                        water_inst%qflx_gw_uncon_dom_cons_col(c)
-                        water_inst%qflx_sfc_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g) - &
-                        water_inst%qflx_gw_uncon_liv_cons_col(c)
-                        water_inst%qflx_sfc_elec_cons_col(c) = sectorwater_inst%elec_cons_actual_grc(g) - &
-                        water_inst%qflx_gw_uncon_elec_cons_col(c)
-                        water_inst%qflx_sfc_mfc_cons_col(c) = sectorwater_inst%mfc_cons_actual_grc(g) - &
-                        water_inst%qflx_gw_uncon_mfc_cons_col(c)
-                        water_inst%qflx_sfc_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g) - &
-                        water_inst%qflx_gw_uncon_min_cons_col(c)
+                        water_inst%waterfluxbulk_inst%qflx_sfc_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g) - &
+                        water_inst%waterfluxbulk_inst%qflx_gw_uncon_dom_cons_col(c)
+                        water_inst%waterfluxbulk_inst%qflx_sfc_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g) - &
+                        water_inst%waterfluxbulk_inst%qflx_gw_uncon_liv_cons_col(c)
+                        water_inst%waterfluxbulk_inst%qflx_sfc_elec_cons_col(c) = sectorwater_inst%elec_cons_actual_grc(g) - &
+                        water_inst%waterfluxbulk_inst%qflx_gw_uncon_elec_cons_col(c)
+                        water_inst%waterfluxbulk_inst%qflx_sfc_mfc_cons_col(c) = sectorwater_inst%mfc_cons_actual_grc(g) - &
+                        water_inst%waterfluxbulk_inst%qflx_gw_uncon_mfc_cons_col(c)
+                        water_inst%waterfluxbulk_inst%qflx_sfc_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g) - &
+                        water_inst%waterfluxbulk_inst%qflx_gw_uncon_min_cons_col(c)
                      
                      ! All sectors are not entirely satisfied, so need to limit the consumption
                      else 
@@ -247,7 +247,7 @@ contains
                            - mfc_daily_gw * mfc_gw_cons_limited_ratio_col(c) - min_daily_gw * min_gw_cons_limited_ratio_col(c)
                         
                            if (total_cons_remaining(c)>0.0_r8) then
-                              water_inst%qflx_gw_con_sectorwater_col(c) = total_cons_remaining(c) / 86400.0_r8
+                              water_inst%waterfluxbulk_inst%qflx_gw_con_sectorwater_col(c) = total_cons_remaining(c) / 86400.0_r8
                            end if
                            total_cons_remaining(c) = 0.0_r8
                         else
@@ -261,11 +261,11 @@ contains
                      min_sfc_cons_limited_ratio_col(c) = 0.0_r8
 
                      if (total_cons_from_input * 86400.0  < avail_s_y) then
-                        water_inst%qflx_gw_uncon_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g) 
-                        water_inst%qflx_gw_uncon_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g)
-                        water_inst%qflx_gw_uncon_elec_cons_col(c) = sectorwater_inst%elec_cons_actual_grc(g)
-                        water_inst%qflx_gw_uncon_mfc_cons_col(c) = sectorwater_inst%mfc_cons_actual_grc(g)
-                        water_inst%qflx_gw_uncon_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g)
+                        water_inst%waterfluxbulk_inst%qflx_gw_uncon_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g) 
+                        water_inst%waterfluxbulk_inst%qflx_gw_uncon_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g)
+                        water_inst%waterfluxbulk_inst%qflx_gw_uncon_elec_cons_col(c) = sectorwater_inst%elec_cons_actual_grc(g)
+                        water_inst%waterfluxbulk_inst%qflx_gw_uncon_mfc_cons_col(c) = sectorwater_inst%mfc_cons_actual_grc(g)
+                        water_inst%waterfluxbulk_inst%qflx_gw_uncon_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g)
                      else
                         if (dom_daily_gw > avail_s_y) then
                            dom_gw_cons_limited_ratio_col(c) = dom_daily_gw / avail_s_y
@@ -289,7 +289,7 @@ contains
                         - mfc_daily_gw * mfc_gw_cons_limited_ratio_col(c) - min_daily_gw * min_gw_cons_limited_ratio_col(c)
                      
                         if (total_cons_remaining(c)>0.0_r8) then
-                           water_inst%qflx_gw_con_sectorwater_col(c) = total_cons_remaining(c) / 86400.0_r8
+                           water_inst%waterfluxbulk_inst%qflx_gw_con_sectorwater_col(c) = total_cons_remaining(c) / 86400.0_r8
                         end if
 
                      end if
@@ -307,11 +307,11 @@ contains
 
                      ! check they have enough water for all sectors
                      if (total_cons_from_input * 86400.0  < avail_volr_mm) then
-                        water_inst%qflx_sfc_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g)
-                        water_inst%qflx_sfc_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g)
-                        water_inst%qflx_sfc_elec_cons_col(c) = sectorwater_inst%elec_cons_actual_grc(g)
-                        water_inst%qflx_sfc_mfc_cons_col(c) = sectorwater_inst%mfc_cons_actual_grc(g)
-                        water_inst%qflx_sfc_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g)
+                        water_inst%waterfluxbulk_inst%qflx_sfc_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g)
+                        water_inst%waterfluxbulk_inst%qflx_sfc_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g)
+                        water_inst%waterfluxbulk_inst%qflx_sfc_elec_cons_col(c) = sectorwater_inst%elec_cons_actual_grc(g)
+                        water_inst%waterfluxbulk_inst%qflx_sfc_mfc_cons_col(c) = sectorwater_inst%mfc_cons_actual_grc(g)
+                        water_inst%waterfluxbulk_inst%qflx_sfc_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g)
                      else
                         if (dom_daily > avail_volr_mm) then
                            dom_sfc_cons_limited_ratio_col(c) = dom_daily / avail_volr_mm
@@ -336,20 +336,20 @@ contains
                      mfc_sfc_cons_limited_ratio_col(c) = 0.0_r8
                      min_sfc_cons_limited_ratio_col(c) = 0.0_r8
 
-                     water_inst%qflx_gw_con_sectorwater_col(c) = total_cons_from_input(g)
+                     water_inst%waterfluxbulk_inst%qflx_gw_con_sectorwater_col(c) = total_cons_from_input(g)
                   end if
                end if
-               w%waterflux_inst%qflx_sfc_dom_cons_col(c)= water_inst%qflx_sfc_dom_cons_col(c) * dom_sfc_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_sfc_liv_cons_col(c)= water_inst%qflx_sfc_liv_cons_col(c) * liv_sfc_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_sfc_elec_cons_col(c)= water_inst%qflx_sfc_elec_cons_col(c) * elec_sfc_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_sfc_mfc_cons_col(c)= water_inst%qflx_sfc_mfc_cons_col(c) * mfc_sfc_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_sfc_min_cons_col(c)= water_inst%qflx_sfc_min_cons_col(c) * min_sfc_cons_limited_ratio_col(c)
+               w%waterflux_inst%qflx_sfc_dom_cons_col(c)= water_inst%waterfluxbulk_inst%qflx_sfc_dom_cons_col(c) * dom_sfc_cons_limited_ratio_col(c)
+               w%waterflux_inst%qflx_sfc_liv_cons_col(c)= water_inst%waterfluxbulk_inst%qflx_sfc_liv_cons_col(c) * liv_sfc_cons_limited_ratio_col(c)
+               w%waterflux_inst%qflx_sfc_elec_cons_col(c)= water_inst%waterfluxbulk_inst%qflx_sfc_elec_cons_col(c) * elec_sfc_cons_limited_ratio_col(c)
+               w%waterflux_inst%qflx_sfc_mfc_cons_col(c)= water_inst%waterfluxbulk_inst%qflx_sfc_mfc_cons_col(c) * mfc_sfc_cons_limited_ratio_col(c)
+               w%waterflux_inst%qflx_sfc_min_cons_col(c)= water_inst%waterfluxbulk_inst%qflx_sfc_min_cons_col(c) * min_sfc_cons_limited_ratio_col(c)
 
-               w%waterflux_inst%qflx_gw_uncon_dom_cons_col(c)= water_inst%qflx_gw_uncon_dom_cons_col(c) * dom_gw_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_gw_uncon_liv_cons_col(c)= water_inst%qflx_gw_uncon_liv_cons_col(c) * liv_gw_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_gw_uncon_elec_cons_col(c)= water_inst%qflx_gw_uncon_elec_cons_col(c) * elec_gw_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_gw_uncon_mfc_cons_col(c)= water_inst%qflx_gw_uncon_mfc_cons_col(c) * mfc_gw_cons_limited_ratio_col(c)
-               w%waterflux_inst%qflx_gw_uncon_min_cons_col(c)= water_inst%qflx_gw_uncon_min_cons_col(c) * min_gw_cons_limited_ratio_col(c)
+               w%waterflux_inst%qflx_gw_uncon_dom_cons_col(c)= water_inst%waterfluxbulk_inst%qflx_gw_uncon_dom_cons_col(c) * dom_gw_cons_limited_ratio_col(c)
+               w%waterflux_inst%qflx_gw_uncon_liv_cons_col(c)= water_inst%waterfluxbulk_inst%qflx_gw_uncon_liv_cons_col(c) * liv_gw_cons_limited_ratio_col(c)
+               w%waterflux_inst%qflx_gw_uncon_elec_cons_col(c)= water_inst%waterfluxbulk_inst%qflx_gw_uncon_elec_cons_col(c) * elec_gw_cons_limited_ratio_col(c)
+               w%waterflux_inst%qflx_gw_uncon_mfc_cons_col(c)= water_inst%waterfluxbulk_inst%qflx_gw_uncon_mfc_cons_col(c) * mfc_gw_cons_limited_ratio_col(c)
+               w%waterflux_inst%qflx_gw_uncon_min_cons_col(c)= water_inst%waterfluxbulk_inst%qflx_gw_uncon_min_cons_col(c) * min_gw_cons_limited_ratio_col(c)
 
                w%waterflux_inst%qflx_gw_con_sectorwater_col(c)= water_inst%qflx_gw_con_sectorwater_col(c)
 
