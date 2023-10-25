@@ -2579,8 +2579,8 @@ contains
    subroutine WithdrawGroundwaterSectorwater(bounds, &
         num_soilc, filter_soilc, &
         waterflux_inst, waterstate_inst, &
-        soilhydrology_inst, soilstate_inst,&
-        qflx_gw_uncon_sectorwater_lyr)
+        soilhydrology_inst, soilstate_inst)!,&
+        !qflx_gw_uncon_sectorwater_lyr)
      !
      ! !DESCRIPTION:
      ! Remove groundwater sectoral water use from unconfined and confined aquifers
@@ -2596,7 +2596,7 @@ contains
      type(soilhydrology_type) , intent(in)  :: soilhydrology_inst
      type(soilstate_type)     , intent(in)  :: soilstate_inst
      !
-     real(r8) , intent(inout) :: qflx_gw_uncon_sectorwater_lyr( bounds%begc:, 1: ) ! unconfined aquifer groundwater sectorwater flux, separated by layer (mm H2O/s)
+     !real(r8) , intent(inout) :: qflx_gw_uncon_sectorwater_lyr( bounds%begc:, 1: ) ! unconfined aquifer groundwater sectorwater flux, separated by layer (mm H2O/s)
      !
      ! !LOCAL VARIABLES:
      integer  :: fc, c, j
@@ -2623,8 +2623,8 @@ contains
           watsat             =>    soilstate_inst%watsat_col             , & ! Input:  [real(r8) (:,:) ] volumetric soil water at saturation (porosity)  
           zwt                =>    soilhydrology_inst%zwt_col            , & ! Input:  [real(r8) (:)   ] water table depth (m) 
           qflx_gw_uncon_sectorwater => waterflux_inst%qflx_gw_uncon_sectorwater_col, & ! Input: [real(r8) (:,:) ] unconfined groundwater sectorwater flux (mm H2O/s)
-          qflx_gw_con_sectorwater  => waterflux_inst%qflx_gw_con_sectorwater_col     , & ! Input: [real(r8) (:,:) ] confined groundwater sectorwater flux (mm H2O /s)
-
+          qflx_gw_con_sectorwater  => waterflux_inst%qflx_gw_con_sectorwater_col   , & ! Input: [real(r8) (:,:) ] confined groundwater sectorwater flux (mm H2O /s)
+          qflx_gw_uncon_sectorwater_lyr => waterflux_inst%qflx_gw_uncon_sectorwater_lyr_col, & ! Input: [real(r8) (:,:) ] unconfined groundwater irrigation flux, separated by layer (mm H2O/s)
           wa                 =>    waterstate_inst%wa_col                , & ! Output: [real(r8) (:)   ] water in the unconfined aquifer (mm)
           h2osoi_liq         =>    waterstate_inst%h2osoi_liq_col          & ! Output: [real(r8) (:,:) ] liquid water (kg/m2)
           )
@@ -2642,7 +2642,7 @@ contains
      do fc = 1, num_soilc
         c = filter_soilc(fc)
 
-        sector_cons_remaining = (qflx_gw_uncon_sectorwater(c)+qflx_gw_con_sectorwater(c))*dtime
+        sector_cons_remaining = (qflx_gw_uncon_sectorwater(c))*dtime
           
         ! should never be negative... but include for completeness
         if(sector_cons_remaining < 0.) then
@@ -2681,6 +2681,7 @@ contains
            end do
 
            if (sector_cons_remaining > 0._r8) then
+              write(iulog,*) "sector_cons_remaining", sector_cons_remaining
               call endrun(subgrid_index=c, subgrid_level=subgrid_level_column, &
               msg="Unconfined groundwater sectorwater has overflowed"//errmsg(sourcefile, __LINE__))
            else
