@@ -768,7 +768,7 @@ module SectorWaterMod
           character(len=20)  :: string_year
           character(len=32)  :: subname = 'ReadSectorWaterData'
           !-----------------------------------------------------------------------
-          write (iulog,*) 'ReadSectorWaterData' 
+
           if (masterproc) then
                write (iulog,*) 'Attempting to read sectoral water usage data for current month .....'
           end if
@@ -785,14 +785,11 @@ module SectorWaterMod
                     mon_min_withd(bounds%begg:bounds%endg), &
                     mon_min_cons(bounds%begg:bounds%endg), &
                     stat=ier)
-          write (iulog,*) 'after allocate'
     
           ! Open the input .txt file:
           open(unit=10, file=this%params%path_sectorwater_input_data, status='old')
-          write (iulog,*) 'after opening the  txt file'
           ! Read first line to get start_year_input and end_year_input
           read(10,*,IOSTAT=i) start_year_input, end_year_input
-          write (iulog,*) 'read txt'
           ! Check if current year is withing the input data limits
           if (year > end_year_input) then
                write(yearErrMessage, '(I0)') year
@@ -807,7 +804,7 @@ module SectorWaterMod
 
           ! Compute the current line number
           current_line_number = year - start_year_input + 2
-          write (iulog,*) 'current line number', current_line_number
+
           ! Rewind file
           rewind(10)
 
@@ -830,12 +827,10 @@ module SectorWaterMod
           Close(10)
 
           ! Determine necessary indices
-          write (iulog,*) 'call getfil(current_year_input_data, locfn, 0)'
           call getfil(current_year_input_data, locfn, 0)
-          write (iulog,*) 'call ncd_pio_openfile (ncid, trim(locfn), 0)'
+
           call ncd_pio_openfile (ncid, trim(locfn), 0)
           
-          write (iulog,*) "call ncd_io(ncid=ncid, varname='withd_dom', flag='read', data=mon_dom_withd"
           call ncd_io(ncid=ncid, varname='withd_dom', flag='read', data=mon_dom_withd, &
                     dim1name=nameg, nt=mon, readvar=readvar)
           if (.not. readvar) call endrun(msg=' ERROR: withd_dom NOT on surfdata file'//errMsg(sourcefile, __LINE__))   
@@ -877,7 +872,7 @@ module SectorWaterMod
           if (.not. readvar) call endrun(msg=' ERROR: cons_min NOT on surfdata file'//errMsg(sourcefile, __LINE__))   
 
           call ncd_pio_closefile(ncid)
-          write (iulog,*) 'called ncd_pio_closefile(ncid)'
+
           do g = bounds%begg,bounds%endg
                this%input_mon_dom_withd_grc(g) = mon_dom_withd(g)
                this%input_mon_dom_cons_grc(g)  = mon_dom_cons(g)
@@ -897,8 +892,7 @@ module SectorWaterMod
           end do
 
           deallocate(mon_dom_withd, mon_dom_cons, mon_liv_withd, mon_liv_cons, mon_elec_withd, mon_elec_cons, mon_mfc_withd, mon_mfc_cons, mon_min_withd, mon_min_cons)
-          write (iulog,*) 'end of ReadSectorWaterData'
-     endsubroutine ReadSectorWaterData
+     end subroutine ReadSectorWaterData
  
      subroutine CalcSectorWaterNeeded(this, bounds, volr, rof_prognostic)
  
@@ -966,7 +960,6 @@ module SectorWaterMod
           
           character(len=*), parameter :: subname = 'CalcSectorWaterNeeded'
           !-----------------------------------------------------------------------
-          write (iulog,*) 'CalcSectorWaterNeeded start'
           ! Get current date
           call get_curr_date(year, mon, day, sec)
           dayspyr = get_days_per_year()
@@ -987,7 +980,7 @@ module SectorWaterMod
           if (is_end_curr_month()) then
                call this%ReadSectorWaterData(bounds, year, mon)
           endif
-          write (iulog,*) 'compute demand start'
+
           ! Compute demand [mm]
           ! First initialize demand to 0 everywhere;
           dom_demand(bounds%begg:bounds%endg)       = 0._r8
@@ -1121,7 +1114,6 @@ module SectorWaterMod
                !                                           this%elec_withd_actual_grc(g) + this%mfc_withd_actual_grc(g) + &
                !                                           this%min_withd_actual_grc(g)) * mm_to_m3_over_km2 * grc%area(g) * 86400._r8
           end do
-          write (iulog,*) 'end of CalcSectorWaterNeeded'
      end subroutine CalcSectorWaterNeeded
  
  
@@ -1186,7 +1178,6 @@ module SectorWaterMod
           character(len=*), parameter :: subname = 'CalcSectorDemandVolrLimited'
           !-----------------------------------------------------------------------
           
-          write (iulog,*) 'CalcSectorDemandVolrLimited'
           do g = bounds%begg, bounds%endg
                if (volr(g) > 0._r8) then
                     available_volr = volr(g) * (1._r8 - this%params%sectorwater_river_volume_threshold)
@@ -1274,7 +1265,6 @@ module SectorWaterMod
                min_consumption_volr_limited(g) = min_consumption(g) * min_demand_limited_ratio_grc(g)
           
           end do
-          write (iulog,*) 'end of CalcSectorDemandVolrLimited'
      end subroutine CalcSectorDemandVolrLimited
 
   !-----------------------------------------------------------------------

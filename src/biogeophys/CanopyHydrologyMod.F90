@@ -1057,7 +1057,7 @@ contains
      integer  :: fc, c
      real(r8) :: qflx_snow_grnd_patch(bounds%begp:bounds%endp)  ! snow on ground after interception, patch-level (mm H2O/s)
      real(r8) :: qflx_liq_grnd_patch(bounds%begp:bounds%endp)   ! liquid on ground after interception, patch-level (mm H2O/s)
-     real(r8) :: local_qflx !chris
+     !real(r8) :: local_qflx !chris
      character(len=*), parameter :: subname = 'SumFlux_FluxesOntoGround'
      !-----------------------------------------------------------------------
 
@@ -1106,11 +1106,12 @@ contains
      ! This way we avoid interference with irrigated columns. 
      ! So that the other sectors do not affect total irrigation, except for sectoral competition during the withdrawal process.
      do c = begc, endc
-          local_qflx = qflx_sectorwater(c)
-          if (local_qflx < 0._r8) then
-             local_qflx = 0._r8
-          end if
-          qflx_liq_grnd_col(c) = qflx_liq_grnd_col(c) + local_qflx
+          !local_qflx = qflx_sectorwater(c)
+          !if (local_qflx < 0._r8) then
+          !   local_qflx = 0._r8
+          !end if
+          write(iulog,*) "In canopy sectorwater", qflx_sectorwater(c)
+          qflx_liq_grnd_col(c) = qflx_liq_grnd_col(c) + qflx_sectorwater(c) !local_qflx
      end do
 
      do fc = 1, num_nolakec
