@@ -375,10 +375,10 @@ contains
          c2l_scale_type= 'urbanf', l2g_scale_type='unity' )
 
     do g = bounds%begg, bounds%endg
-       water_inst%waterlnd2atmbulk_inst%qflx_rofliq_qgwl_grc(g) = &
+         water_inst%waterlnd2atmbulk_inst%qflx_rofliq_qgwl_grc(g) = &
          water_inst%waterlnd2atmbulk_inst%qflx_rofliq_qgwl_grc(g) - &
          water_inst%waterfluxbulk_inst%qflx_liq_dynbal_grc(g)
-       water_inst%waterlnd2atmbulk_inst%qflx_rofliq_grc(g) = &
+         water_inst%waterlnd2atmbulk_inst%qflx_rofliq_grc(g) = &
          water_inst%waterlnd2atmbulk_inst%qflx_rofliq_grc(g) - &
          water_inst%waterfluxbulk_inst%qflx_liq_dynbal_grc(g)
     enddo
@@ -404,7 +404,7 @@ contains
          c2l_scale_type= 'urbanf', l2g_scale_type='unity' )
          
     do g = bounds%begg, bounds%endg
-       water_inst%waterlnd2atmbulk_inst%qflx_rofice_grc(g) = &
+         water_inst%waterlnd2atmbulk_inst%qflx_rofice_grc(g) = &
          water_inst%waterlnd2atmbulk_inst%qflx_rofice_grc(g) - &
          water_inst%waterfluxbulk_inst%qflx_ice_dynbal_grc(g)
     enddo

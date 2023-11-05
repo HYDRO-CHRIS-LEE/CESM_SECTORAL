@@ -154,7 +154,7 @@ contains
   
         do c = bounds%begc,bounds%endc
            g = col%gridcell(c)
-           ![m3]
+           ![mm/s]*[s/day] = [mm/day]
            dom_daily = w%waterflux_inst%qflx_sfc_dom_cons_col(c) * 86400.0_r8
            liv_daily = w%waterflux_inst%qflx_sfc_liv_cons_col(c) * 86400.0_r8
            elec_daily = w%waterflux_inst%qflx_sfc_elec_cons_col(c) * 86400.0_r8
@@ -190,7 +190,7 @@ contains
                      avail_volr_mm = avail_volr / grc%area(g) * m3_over_km2_to_mm
 
                      ! check they have enough water for all sectors
-                     if (total_cons_from_input(g) * 86400.0  < (avail_volr_mm + avail_s_y)) then
+                     if (total_cons_from_input(g) * 86400.0  < (avail_volr_mm + avail_s_y)) then ![mm/day]
                         w%waterflux_inst%qflx_gw_uncon_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g) &
                         * avail_s_y / (avail_volr_mm + avail_s_y)
                         w%waterflux_inst%qflx_gw_uncon_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g) &
@@ -213,6 +213,18 @@ contains
                         w%waterflux_inst%qflx_sfc_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g) - &
                         w%waterflux_inst%qflx_gw_uncon_min_cons_col(c)
                      
+                        total_cons_remaining(c) = total_cons_from_input(g) * 86400.0_r8 - &
+                        (w%waterflux_inst%qflx_sfc_dom_cons_col(c) + w%waterflux_inst%qflx_sfc_liv_cons_col(c) + &
+                        w%waterflux_inst%qflx_sfc_elec_cons_col(c) + w%waterflux_inst%qflx_sfc_mfc_cons_col(c) + &
+                        w%waterflux_inst%qflx_sfc_min_cons_col(c) + w%waterflux_inst%qflx_gw_uncon_dom_cons_col(c) + &
+                        w%waterflux_inst%qflx_gw_uncon_liv_cons_col(c) + w%waterflux_inst%qflx_gw_uncon_elec_cons_col(c) + &
+                        w%waterflux_inst%qflx_gw_uncon_mfc_cons_col(c) + w%waterflux_inst%qflx_gw_uncon_min_cons_col(c)) * 86400.0_r8
+
+                        if (total_cons_remaining(c)>0.0_r8) then
+                           w%waterflux_inst%qflx_gw_con_sectorwater_col(c) = total_cons_remaining(c) / 86400.0_r8
+                        end if
+                        total_cons_remaining(c) = 0.0_r8
+                        
                      ! All sectors are not entirely satisfied, so need to limit the consumption
                      else 
                         ! considering that the sectoral water is net consumption and 
@@ -227,7 +239,7 @@ contains
                            mfc_sfc_cons_limited_ratio_col(c) = 0.0_r8
                            min_sfc_cons_limited_ratio_col(c) = 0.0_r8
                         else
-                           ! The full domestic demand can be met, calculate remaining supply
+                           ! The full domestic demand can be met, calculate remaining supply [mm/day]
                            total_cons_remaining(c) = total_cons_from_input(g) * 86400.0_r8 - dom_daily
 
                            ! Check if domestic + livestock demand exceeds available supply
@@ -276,6 +288,7 @@ contains
                            end if
                         end if
 
+                        ! Calculate the remaining supply for groundwater
                         if (total_cons_remaining(c)>0.0_r8) then
                            if (dom_daily_gw > avail_s_y) then
                               ! Only a portion of the domestic demand can be satisfied
@@ -334,14 +347,13 @@ contains
                                  end if
                               end if
                            end if
-                        
-                           if (total_cons_remaining(c)>0.0_r8) then
-                              w%waterflux_inst%qflx_gw_con_sectorwater_col(c) = total_cons_remaining(c) / 86400.0_r8
-                           end if
-                           total_cons_remaining(c) = 0.0_r8
-                        else
                         end if
+                        if (total_cons_remaining(c)>0.0_r8) then
+                           w%waterflux_inst%qflx_gw_con_sectorwater_col(c) = total_cons_remaining(c) / 86400.0_r8
+                        end if
+                        total_cons_remaining(c) = 0.0_r8
                      end if
+            
                   else ! river: 0, groundwater: +
                      dom_sfc_cons_limited_ratio_col(c) = 0.0_r8
                      liv_sfc_cons_limited_ratio_col(c) = 0.0_r8
@@ -417,7 +429,7 @@ contains
                         if (total_cons_remaining(c)>0.0_r8) then
                            w%waterflux_inst%qflx_gw_con_sectorwater_col(c) = total_cons_remaining(c) / 86400.0_r8
                         end if
-
+                        total_cons_remaining(c) = 0.0_r8
                      end if
                   end if   
                else 
@@ -497,6 +509,7 @@ contains
                         if (total_cons_remaining(c)>0.0_r8) then
                            w%waterflux_inst%qflx_gw_con_sectorwater_col(c) = total_cons_remaining(c) / 86400.0_r8
                         end if
+                        total_cons_remaining(c) = 0.0_r8
                      end if
                   else ! river: 0, groundwater: 0
                      dom_sfc_cons_limited_ratio_col(c) = 0.0_r8
@@ -508,6 +521,7 @@ contains
                      w%waterflux_inst%qflx_gw_con_sectorwater_col(c) = total_cons_from_input(g)
                   end if
                end if
+
                w%waterflux_inst%qflx_sfc_dom_cons_col(c) = w%waterflux_inst%qflx_sfc_dom_cons_col(c)  * dom_sfc_cons_limited_ratio_col(c)
                w%waterflux_inst%qflx_sfc_liv_cons_col(c) = w%waterflux_inst%qflx_sfc_liv_cons_col(c)  * liv_sfc_cons_limited_ratio_col(c)
                w%waterflux_inst%qflx_sfc_elec_cons_col(c)= w%waterflux_inst%qflx_sfc_elec_cons_col(c) * elec_sfc_cons_limited_ratio_col(c)
@@ -530,11 +544,13 @@ contains
                w%waterflux_inst%qflx_gw_uncon_liv_cons_col(c) + w%waterflux_inst%qflx_gw_uncon_elec_cons_col(c) + &
                w%waterflux_inst%qflx_gw_uncon_mfc_cons_col(c) + w%waterflux_inst%qflx_gw_uncon_min_cons_col(c)
                
-               sectorwater_inst%sectorwater_total_sfc_actual_withd(g) = w%waterflux_inst%qflx_sfc_sectorwater_col(c) * 86400.0_r8
+               ![m3] = [mm/s]*[s/day]*[m2] = [mm/day]*[m2] = [m3/day]
+               sectorwater_inst%sectorwater_total_sfc_actual_withd(g) =&
+               sectorwater_inst%sectorwater_total_sfc_actual_withd(g)+ w%waterflux_inst%qflx_sfc_sectorwater_col(c) * 86400.0_r8
 
-               if (w%waterflux_inst%qflx_sfc_sectorwater_col(c) /= 0.0) then
-                  write(iulog,*) "In hydroNoDrainage sectorwater", w%waterflux_inst%qflx_sfc_sectorwater_col(c)
-               end if
+               ! if (w%waterflux_inst%qflx_sfc_sectorwater_col(c) /= 0.0) then
+               !    write(iulog,*) "In hydroNoDrainage sectorwater", w%waterflux_inst%qflx_sfc_sectorwater_col(c)
+               ! end if
             else ! not soil column
                w%waterflux_inst%qflx_sfc_sectorwater_col(c) = 0.0_r8
                w%waterflux_inst%qflx_gw_uncon_sectorwater_col(c) = 0.0_r8
@@ -554,9 +570,9 @@ contains
 
                sectorwater_inst%sectorwater_total_sfc_actual_withd(g) = 0.0_r8
                
-               if (w%waterflux_inst%qflx_sfc_sectorwater_col(c) /= 0.0) then
-                  write(iulog,*) "In hydroNoDrainage sectorwater", w%waterflux_inst%qflx_sfc_sectorwater_col(c)
-               end if
+               ! if (w%waterflux_inst%qflx_sfc_sectorwater_col(c) /= 0.0) then
+               !    write(iulog,*) "In hydroNoDrainage sectorwater", w%waterflux_inst%qflx_sfc_sectorwater_col(c)
+               ! end if
                
             end if
         end do

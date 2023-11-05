@@ -2686,12 +2686,12 @@ contains
               endif
            end do
 
-         !   if (sector_cons_remaining > 0._r8) then
-         !      write(iulog,*) "sector_cons_remaining2", sector_cons_remaining
-         !      call endrun(subgrid_index=c, subgrid_level=subgrid_level_column, &
-         !      msg="Unconfined groundwater sectorwater has overflowed"//errmsg(sourcefile, __LINE__))
-         !   else
-         !   end if
+           if (sector_cons_remaining > 0._r8) then
+              write(iulog,*) "sector_cons_remaining2", sector_cons_remaining
+              call endrun(subgrid_index=c, subgrid_level=subgrid_level_column, &
+              msg="Unconfined groundwater sectorwater has overflowed"//errmsg(sourcefile, __LINE__))
+           else
+           end if
         end if
      end do
 

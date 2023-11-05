@@ -922,20 +922,20 @@ contains
          ptr_col=this%qflx_gw_con_sectorwater_col)
 
     this%qflx_sfc_dom_cons_col(begc:endc) = spval
-     call hist_addfld1d ( &
-           fname=this%info%fname('QDOM_CONS_FROM_SURFACE'), &
-           units='mm/s', &
-           avgflag='A', &
-           long_name=this%info%lname('water added to surface soil due to domestic water usage'), &
-           ptr_col=this%qflx_sfc_dom_cons_col, c2l_scale_type='urbanf')
+    call hist_addfld1d ( &
+         fname=this%info%fname('QDOM_CONS_FROM_SURFACE'), &
+         units='mm/s', &
+         avgflag='A', &
+         long_name=this%info%lname('water added to surface soil due to domestic water usage'), &
+         ptr_col=this%qflx_sfc_dom_cons_col, c2l_scale_type='urbanf')
 
     this%qflx_gw_uncon_dom_cons_col(begc:endc) = spval
-     call hist_addfld1d ( &
-           fname=this%info%fname('QDOM_CONS_FROM_GW_UNCONFINED'), &
-           units='mm/s', &
-           avgflag='A', &
-           long_name=this%info%lname('water added through unconfined groundwater domestic water usage'), &
-           ptr_col=this%qflx_gw_uncon_dom_cons_col)
+    call hist_addfld1d ( &
+         fname=this%info%fname('QDOM_CONS_FROM_GW_UNCONFINED'), &
+         units='mm/s', &
+         avgflag='A', &
+         long_name=this%info%lname('water added through unconfined groundwater domestic water usage'), &
+         ptr_col=this%qflx_gw_uncon_dom_cons_col)
 
 !     this%qflx_gw_con_dom_cons_col(begc:endc) = spval
 !      call hist_addfld1d ( &
@@ -946,20 +946,20 @@ contains
 !            ptr_col=this%qflx_gw_con_dom_cons_col)
 
     this%qflx_sfc_liv_cons_col(begc:endc) = spval
-     call hist_addfld1d ( &
-           fname=this%info%fname('QLIV_CONS_FROM_SURFACE'), &
-           units='mm/s', &
-           avgflag='A', &
-           long_name=this%info%lname('water added to surface soil due to livestock water usage'), &
-           ptr_col=this%qflx_sfc_liv_cons_col, c2l_scale_type='urbanf')
+    call hist_addfld1d ( &
+         fname=this%info%fname('QLIV_CONS_FROM_SURFACE'), &
+         units='mm/s', &
+         avgflag='A', &
+         long_name=this%info%lname('water added to surface soil due to livestock water usage'), &
+         ptr_col=this%qflx_sfc_liv_cons_col, c2l_scale_type='urbanf')
 
     this%qflx_gw_uncon_liv_cons_col(begc:endc) = spval
-     call hist_addfld1d ( &
-           fname=this%info%fname('QLIV_CONS_FROM_GW_UNCONFINED'), &
-           units='mm/s', &
-           avgflag='A', &
-           long_name=this%info%lname('water added through unconfined groundwater livestock water usage'), &
-           ptr_col=this%qflx_gw_uncon_liv_cons_col)
+    call hist_addfld1d ( &
+         fname=this%info%fname('QLIV_CONS_FROM_GW_UNCONFINED'), &
+         units='mm/s', &
+         avgflag='A', &
+         long_name=this%info%lname('water added through unconfined groundwater livestock water usage'), &
+         ptr_col=this%qflx_gw_uncon_liv_cons_col)
 
 !     this%qflx_gw_con_liv_cons_col(begc:endc) = spval
 !      call hist_addfld1d ( &
@@ -970,20 +970,20 @@ contains
 !            ptr_col=this%qflx_gw_con_liv_cons_col)
 
     this%qflx_sfc_elec_cons_col(begc:endc) = spval
-     call hist_addfld1d ( &
-           fname=this%info%fname('QELEC_CONS_FROM_SURFACE'), &
-           units='mm/s', &
-           avgflag='A', &
-           long_name=this%info%lname('water added to surface soil due to electricity water usage'), &
-           ptr_col=this%qflx_sfc_elec_cons_col, c2l_scale_type='urbanf')
+    call hist_addfld1d ( &
+         fname=this%info%fname('QELEC_CONS_FROM_SURFACE'), &
+         units='mm/s', &
+         avgflag='A', &
+         long_name=this%info%lname('water added to surface soil due to electricity water usage'), &
+         ptr_col=this%qflx_sfc_elec_cons_col, c2l_scale_type='urbanf')
 
     this%qflx_gw_uncon_elec_cons_col(begc:endc) = spval
-     call hist_addfld1d ( &
-           fname=this%info%fname('QELEC_CONS_FROM_GW_UNCONFINED'), &
-           units='mm/s', &
-           avgflag='A', &
-           long_name=this%info%lname('water added through unconfined groundwater electricity water usage'), &
-           ptr_col=this%qflx_gw_uncon_elec_cons_col)
+    call hist_addfld1d ( &
+         fname=this%info%fname('QELEC_CONS_FROM_GW_UNCONFINED'), &
+         units='mm/s', &
+         avgflag='A', &
+         long_name=this%info%lname('water added through unconfined groundwater electricity water usage'), &
+         ptr_col=this%qflx_gw_uncon_elec_cons_col)
 
 !     this%qflx_gw_con_elec_cons_col(begc:endc) = spval
 !      call hist_addfld1d ( &
@@ -994,20 +994,20 @@ contains
 !            ptr_col=this%qflx_gw_con_elec_cons_col)
 
     this%qflx_sfc_mfc_cons_col(begc:endc) = spval
-     call hist_addfld1d ( &
-           fname=this%info%fname('QMFC_CONS_FROM_SURFACE'), &
-           units='mm/s', &
-           avgflag='A', &
-           long_name=this%info%lname('water added to surface soil due to manufacturing water usage'), &
-           ptr_col=this%qflx_sfc_mfc_cons_col, c2l_scale_type='urbanf')
+    call hist_addfld1d ( &
+         fname=this%info%fname('QMFC_CONS_FROM_SURFACE'), &
+         units='mm/s', &
+         avgflag='A', &
+         long_name=this%info%lname('water added to surface soil due to manufacturing water usage'), &
+         ptr_col=this%qflx_sfc_mfc_cons_col, c2l_scale_type='urbanf')
 
     this%qflx_gw_uncon_mfc_cons_col(begc:endc) = spval
-     call hist_addfld1d ( &
-           fname=this%info%fname('QMFC_CONS_FROM_GW_UNCONFINED'), &
-           units='mm/s', &
-           avgflag='A', &
-           long_name=this%info%lname('water added through unconfined groundwater manufacturing water usage'), &
-           ptr_col=this%qflx_gw_uncon_mfc_cons_col)
+    call hist_addfld1d ( &
+         fname=this%info%fname('QMFC_CONS_FROM_GW_UNCONFINED'), &
+         units='mm/s', &
+         avgflag='A', &
+         long_name=this%info%lname('water added through unconfined groundwater manufacturing water usage'), &
+         ptr_col=this%qflx_gw_uncon_mfc_cons_col)
 
 !     this%qflx_gw_con_mfc_cons_col(begc:endc) = spval
 !      call hist_addfld1d ( &
@@ -1018,20 +1018,20 @@ contains
 !            ptr_col=this%qflx_gw_con_mfc_cons_col)
 
     this%qflx_sfc_min_cons_col(begc:endc) = spval
-     call hist_addfld1d ( &
-           fname=this%info%fname('QMIN_CONS_FROM_SURFACE'), &
-           units='mm/s', &
-           avgflag='A', &
-           long_name=this%info%lname('water added to surface soil due to mining water usage'), &
-           ptr_col=this%qflx_sfc_min_cons_col, c2l_scale_type='urbanf')
+    call hist_addfld1d ( &
+         fname=this%info%fname('QMIN_CONS_FROM_SURFACE'), &
+         units='mm/s', &
+         avgflag='A', &
+         long_name=this%info%lname('water added to surface soil due to mining water usage'), &
+         ptr_col=this%qflx_sfc_min_cons_col, c2l_scale_type='urbanf')
 
     this%qflx_gw_uncon_min_cons_col(begc:endc) = spval
-     call hist_addfld1d ( &
-           fname=this%info%fname('QMIN_CONS_FROM_GW_UNCONFINED'), &
-           units='mm/s', &
-           avgflag='A', &
-           long_name=this%info%lname('water added through unconfined groundwater mining water usage'), &
-           ptr_col=this%qflx_gw_uncon_min_cons_col)
+    call hist_addfld1d ( &
+         fname=this%info%fname('QMIN_CONS_FROM_GW_UNCONFINED'), &
+         units='mm/s', &
+         avgflag='A', &
+         long_name=this%info%lname('water added through unconfined groundwater mining water usage'), &
+         ptr_col=this%qflx_gw_uncon_min_cons_col)
 
 !     this%qflx_gw_con_min_cons_col(begc:endc) = spval
 !      call hist_addfld1d ( &

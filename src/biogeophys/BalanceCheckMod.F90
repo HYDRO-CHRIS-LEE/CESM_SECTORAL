@@ -615,15 +615,15 @@ contains
           end if
        end do
 
-       ! Water balance check at the column level
-       if (qflx_sfc_sectorwater_col(c) /= 0.0) then
-         write(iulog,*) "In balance sectorwater", qflx_sfc_sectorwater_col(c)
-       end if
+       
        do c = bounds%begc, bounds%endc
 
           ! add qflx_drain_perched and qflx_flood
           if (col%active(c)) then
-
+             ! Water balance check at the column level
+             if (qflx_sfc_sectorwater_col(c) /= 0.0) then
+                write(iulog,*) "In balance sectorwater", qflx_sfc_sectorwater_col(c)
+             end if
              errh2o_col(c) = endwb_col(c) - begwb_col(c) &
                   - (forc_rain_col(c)        &
                   + forc_snow_col(c)         &
