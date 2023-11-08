@@ -1106,11 +1106,10 @@ contains
      ! This way we avoid interference with irrigated columns. 
      ! So that the other sectors do not affect total irrigation, except for sectoral competition during the withdrawal process.
      do c = begc, endc
-         ! Check if qflx_sectorwater(c) is not zero
          if (qflx_sectorwater(c) /= 0.0) then
             write(iulog,*) "In canopy sectorwater", qflx_sectorwater(c)
          end if
-         qflx_liq_grnd_col(c) = qflx_liq_grnd_col(c) + qflx_sectorwater(c) !local_qflx
+         qflx_liq_grnd_col(c) = qflx_liq_grnd_col(c) + qflx_sectorwater(c)
      end do
 
      do fc = 1, num_nolakec

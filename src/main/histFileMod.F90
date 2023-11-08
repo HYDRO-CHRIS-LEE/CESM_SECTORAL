@@ -1284,12 +1284,6 @@ contains
              call hist_update_hbuf_field_1d (t, f, bounds)
           else
              num2d = tape(t)%hlist(f)%field%num2d
-             write(*,*) 'Before line 1287'
-             write(*,*) 'Variables passed to hist_update_hbuf_field_2d:'
-             write(*,*) 't:', t
-             write(*,*) 'f:', f
-             write(*,*) 'bounds:', bounds
-             write(*,*) 'num2d:', num2d
 
              call hist_update_hbuf_field_2d (t, f, bounds, num2d)
           end if
@@ -1976,12 +1970,6 @@ contains
                    if (.not. active(k)) valid = .false.
                 end if
                 if (valid) then
-                  write(*,*) 'Before line 1972'
-                  write(*,*) 'Index k:', k
-                  write(*,*) 'Index j:', j
-                  write(*,*) 'beg1d:', beg1d
-                  write(*,*) 'Field value at (k-beg1d+1,j):', field(k-beg1d+1,j)
-                  write(*,*) 'spval:', spval
                    if (field(k-beg1d+1,j) /= spval) then
                       if (nacs(k,j) == 0) hbuf(k,j) = 0._r8
                       hbuf(k,j) = hbuf(k,j) + field(k-beg1d+1,j)

@@ -37,6 +37,7 @@ Module HydrologyNoDrainageMod
   use TopoMod, only : topo_type
   use perf_mod          , only : t_startf, t_stopf
   use GridcellType     , only : grc
+  use subgridAveMod    , only : c2g
   !
   ! !PUBLIC TYPES:
   implicit none
@@ -98,20 +99,29 @@ contains
      ! !LOCAL VARIABLES:
      integer :: i  ! tracer index
      real(r8), parameter :: m3_over_km2_to_mm = 1.e-3_r8
-     real(r8) :: dom_daily, liv_daily, elec_daily, mfc_daily, min_daily ! [mm]
-     real(r8) :: dom_daily_gw, liv_daily_gw, elec_daily_gw, mfc_daily_gw, min_daily_gw ! [mm]
+     real(r8), pointer :: dom_daily(:) ! [mm]
+     real(r8), pointer :: liv_daily(:)
+     real(r8), pointer :: elec_daily(:)
+     real(r8), pointer :: mfc_daily(:)
+     real(r8), pointer :: min_daily(:)
 
-     real(r8) :: dom_sfc_cons_limited_ratio_col(bounds%begc:bounds%endc)
-     real(r8) :: liv_sfc_cons_limited_ratio_col(bounds%begc:bounds%endc)
-     real(r8) :: elec_sfc_cons_limited_ratio_col(bounds%begc:bounds%endc)
-     real(r8) :: mfc_sfc_cons_limited_ratio_col(bounds%begc:bounds%endc)
-     real(r8) :: min_sfc_cons_limited_ratio_col(bounds%begc:bounds%endc)
+     real(r8), pointer :: dom_daily_gw(:) ! [mm]
+     real(r8), pointer :: liv_daily_gw(:)
+     real(r8), pointer :: elec_daily_gw(:)
+     real(r8), pointer :: mfc_daily_gw(:)
+     real(r8), pointer :: min_daily_gw(:)
 
-     real(r8) :: dom_gw_cons_limited_ratio_col(bounds%begc:bounds%endc)
-     real(r8) :: liv_gw_cons_limited_ratio_col(bounds%begc:bounds%endc)
-     real(r8) :: elec_gw_cons_limited_ratio_col(bounds%begc:bounds%endc)
-     real(r8) :: mfc_gw_cons_limited_ratio_col(bounds%begc:bounds%endc)
-     real(r8) :: min_gw_cons_limited_ratio_col(bounds%begc:bounds%endc)
+     real(r8), pointer :: dom_sfc_cons_limited_ratio_col(:)
+     real(r8), pointer :: liv_sfc_cons_limited_ratio_col(:)
+     real(r8), pointer :: elec_sfc_cons_limited_ratio_col(:)
+     real(r8), pointer :: mfc_sfc_cons_limited_ratio_col(:)
+     real(r8), pointer :: min_sfc_cons_limited_ratio_col(:)
+
+     real(r8), pointer :: dom_gw_cons_limited_ratio_col(:)
+     real(r8), pointer :: liv_gw_cons_limited_ratio_col(:)
+     real(r8), pointer :: elec_gw_cons_limited_ratio_col(:)
+     real(r8), pointer :: mfc_gw_cons_limited_ratio_col(:)
+     real(r8), pointer :: min_gw_cons_limited_ratio_col(:)
 
      character(len=*), parameter :: subname = 'CalcAndWithdrawSectorWaterFluxes'
      !-----------------------------------------------------------------------
@@ -122,6 +132,46 @@ contains
 
      allocate(total_cons_from_input(bounds%begg:bounds%endg))
      allocate(sum_s_y(num_soilc))  ! where num_soilc is the number of soil columns you're working with
+
+     allocate(dom_daily(bounds%begc:bounds%endc))
+     allocate(liv_daily(bounds%begc:bounds%endc))
+     allocate(elec_daily(bounds%begc:bounds%endc))
+     allocate(mfc_daily(bounds%begc:bounds%endc))
+     allocate(min_daily(bounds%begc:bounds%endc))
+
+     allocate(dom_daily_gw(bounds%begc:bounds%endc))
+     allocate(liv_daily_gw(bounds%begc:bounds%endc))
+     allocate(elec_daily_gw(bounds%begc:bounds%endc))
+     allocate(mfc_daily_gw(bounds%begc:bounds%endc))
+     allocate(min_daily_gw(bounds%begc:bounds%endc))
+
+     allocate(dom_sfc_cons_limited_ratio_col(bounds%begc:bounds%endc))
+     allocate(liv_sfc_cons_limited_ratio_col(bounds%begc:bounds%endc))
+     allocate(elec_sfc_cons_limited_ratio_col(bounds%begc:bounds%endc))
+     allocate(mfc_sfc_cons_limited_ratio_col(bounds%begc:bounds%endc))
+     allocate(min_sfc_cons_limited_ratio_col(bounds%begc:bounds%endc))
+
+     allocate(dom_gw_cons_limited_ratio_col(bounds%begc:bounds%endc))
+     allocate(liv_gw_cons_limited_ratio_col(bounds%begc:bounds%endc))
+     allocate(elec_gw_cons_limited_ratio_col(bounds%begc:bounds%endc))
+     allocate(mfc_gw_cons_limited_ratio_col(bounds%begc:bounds%endc))
+     allocate(min_gw_cons_limited_ratio_col(bounds%begc:bounds%endc))
+
+     allocate(total_cons_remaining(bounds%begc:bounds%endc))
+
+     dom_sfc_cons_limited_ratio_col(:) = 1.0_r8
+     liv_sfc_cons_limited_ratio_col(:) = 1.0_r8
+     elec_sfc_cons_limited_ratio_col(:) = 1.0_r8
+     mfc_sfc_cons_limited_ratio_col(:) = 1.0_r8
+     min_sfc_cons_limited_ratio_col(:) = 1.0_r8
+
+     dom_gw_cons_limited_ratio_col(:) = 1.0_r8
+     liv_gw_cons_limited_ratio_col(:) = 1.0_r8
+     elec_gw_cons_limited_ratio_col(:) = 1.0_r8
+     mfc_gw_cons_limited_ratio_col(:) = 1.0_r8
+     min_gw_cons_limited_ratio_col(:) = 1.0_r8
+
+     total_cons_remaining(:) = 0.0_r8
    
 
      if (is_beg_curr_day()) then
@@ -154,34 +204,21 @@ contains
   
         do c = bounds%begc,bounds%endc
            g = col%gridcell(c)
-           ![mm/s]*[s/day] = [mm/day]
-           dom_daily = w%waterflux_inst%qflx_sfc_dom_cons_col(c) * 86400.0_r8
-           liv_daily = w%waterflux_inst%qflx_sfc_liv_cons_col(c) * 86400.0_r8
-           elec_daily = w%waterflux_inst%qflx_sfc_elec_cons_col(c) * 86400.0_r8
-           mfc_daily = w%waterflux_inst%qflx_sfc_mfc_cons_col(c) * 86400.0_r8
-           min_daily = w%waterflux_inst%qflx_sfc_min_cons_col(c) * 86400.0_r8
-
-           dom_daily_gw = w%waterflux_inst%qflx_gw_uncon_dom_cons_col(c) * 86400.0_r8
-           liv_daily_gw = w%waterflux_inst%qflx_gw_uncon_liv_cons_col(c) * 86400.0_r8
-           elec_daily_gw = w%waterflux_inst%qflx_gw_uncon_elec_cons_col(c) * 86400.0_r8
-           mfc_daily_gw = w%waterflux_inst%qflx_gw_uncon_mfc_cons_col(c) * 86400.0_r8
-           min_daily_gw = w%waterflux_inst%qflx_gw_uncon_min_cons_col(c) * 86400.0_r8
-
-           ! Default values [-]
-           dom_sfc_cons_limited_ratio_col(c) = 1.0_r8
-           liv_sfc_cons_limited_ratio_col(c) = 1.0_r8
-           elec_sfc_cons_limited_ratio_col(c) = 1.0_r8
-           mfc_sfc_cons_limited_ratio_col(c) = 1.0_r8
-           min_sfc_cons_limited_ratio_col(c) = 1.0_r8
-
-           ! Default values
-           dom_gw_cons_limited_ratio_col(c) = 1.0_r8
-           liv_gw_cons_limited_ratio_col(c) = 1.0_r8
-           elec_gw_cons_limited_ratio_col(c) = 1.0_r8
-           mfc_gw_cons_limited_ratio_col(c) = 1.0_r8
-           min_gw_cons_limited_ratio_col(c) = 1.0_r8
 
            if (col%lun_itype(c) == istsoil) then
+               dom_daily(c) = w%waterflux_inst%qflx_sfc_dom_cons_col(c) * 86400.0_r8
+               liv_daily(c) = w%waterflux_inst%qflx_sfc_liv_cons_col(c) * 86400.0_r8
+               elec_daily(c) = w%waterflux_inst%qflx_sfc_elec_cons_col(c) * 86400.0_r8
+               mfc_daily(c) = w%waterflux_inst%qflx_sfc_mfc_cons_col(c) * 86400.0_r8
+               min_daily(c) = w%waterflux_inst%qflx_sfc_min_cons_col(c) * 86400.0_r8
+   
+               dom_daily_gw(c) = w%waterflux_inst%qflx_gw_uncon_dom_cons_col(c) * 86400.0_r8
+               liv_daily_gw(c) = w%waterflux_inst%qflx_gw_uncon_liv_cons_col(c) * 86400.0_r8
+               elec_daily_gw(c) = w%waterflux_inst%qflx_gw_uncon_elec_cons_col(c) * 86400.0_r8
+               mfc_daily_gw(c) = w%waterflux_inst%qflx_gw_uncon_mfc_cons_col(c) * 86400.0_r8
+               min_daily_gw(c) = w%waterflux_inst%qflx_gw_uncon_min_cons_col(c) * 86400.0_r8
+   
+
                if(sum_s_y(c)>0.0_r8) then
                   avail_s_y = sum_s_y(c) * 0.5_r8 ! limit the gw for sectoral water use to 50% [mm]
 
@@ -201,6 +238,10 @@ contains
                         * avail_s_y / (avail_volr_mm + avail_s_y)
                         w%waterflux_inst%qflx_gw_uncon_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g) &
                         * avail_s_y / (avail_volr_mm + avail_s_y)
+
+                        ! if (w%waterflux_inst%qflx_sfc_dom_cons_col(c) /= 0.0) then
+                        !    write(iulog,*) "qflx_sfc_dom_cons_col(c)", w%waterflux_inst%qflx_sfc_dom_cons_col(c)
+                        ! end if
 
                         w%waterflux_inst%qflx_sfc_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g) - &
                         w%waterflux_inst%qflx_gw_uncon_dom_cons_col(c)
@@ -232,20 +273,20 @@ contains
                         ! we will allocate the available water to surface water first
                         ! and then allocate the remaining water to groundwater
 
-                        if (dom_daily > avail_volr_mm) then
-                           dom_sfc_cons_limited_ratio_col(c) = avail_volr_mm / dom_daily 
+                        if (dom_daily(c) > avail_volr_mm) then
+                           dom_sfc_cons_limited_ratio_col(c) = avail_volr_mm / dom_daily(c) 
                            liv_sfc_cons_limited_ratio_col(c) = 0.0_r8
                            elec_sfc_cons_limited_ratio_col(c) = 0.0_r8
                            mfc_sfc_cons_limited_ratio_col(c) = 0.0_r8
                            min_sfc_cons_limited_ratio_col(c) = 0.0_r8
                         else
                            ! The full domestic demand can be met, calculate remaining supply [mm/day]
-                           total_cons_remaining(c) = total_cons_from_input(g) * 86400.0_r8 - dom_daily
+                           total_cons_remaining(c) = total_cons_from_input(g) * 86400.0_r8 - dom_daily(c)
 
                            ! Check if domestic + livestock demand exceeds available supply
-                           if (dom_daily + liv_daily > avail_volr_mm) then
+                           if (dom_daily(c) + liv_daily(c) > avail_volr_mm) then
                               ! Only a portion of the livestock demand can be satisfied
-                              liv_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily) / liv_daily
+                              liv_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily(c)) / liv_daily(c)
                               ! No resources left for other sectors
                               elec_sfc_cons_limited_ratio_col(c) = 0.0_r8
                               mfc_sfc_cons_limited_ratio_col(c) = 0.0_r8
@@ -253,35 +294,35 @@ contains
 
                            else
                               ! The full livestock demand can be met, calculate remaining supply
-                              total_cons_remaining(c) = total_cons_remaining(c) - liv_daily
+                              total_cons_remaining(c) = total_cons_remaining(c) - liv_daily(c)
 
                               ! Check if domestic + livestock + electricity demand exceeds available supply
-                              if (dom_daily + liv_daily + elec_daily > avail_volr_mm) then
+                              if (dom_daily(c) + liv_daily(c) + elec_daily(c) > avail_volr_mm) then
                                  ! Only a portion of the electricity demand can be satisfied
-                                 elec_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily - liv_daily) / elec_daily
+                                 elec_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily(c) - liv_daily(c)) / elec_daily(c)
                                  ! No resources left for other sectors
                                  mfc_sfc_cons_limited_ratio_col(c) = 0.0_r8
                                  min_sfc_cons_limited_ratio_col(c) = 0.0_r8
 
                               else
                                  ! The full electricity demand can be met, calculate remaining supply
-                                 total_cons_remaining(c) = total_cons_remaining(c) - elec_daily
+                                 total_cons_remaining(c) = total_cons_remaining(c) - elec_daily(c)
 
                                  ! Check if domestic + livestock + electricity + manufacturing demand exceeds available supply
-                                 if (dom_daily + liv_daily + elec_daily + mfc_daily > avail_volr_mm) then
+                                 if (dom_daily(c) + liv_daily(c) + elec_daily(c) + mfc_daily(c) > avail_volr_mm) then
                                     ! Only a portion of the manufacturing demand can be satisfied
-                                    mfc_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily - liv_daily - elec_daily) / mfc_daily
+                                    mfc_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily(c) - liv_daily(c) - elec_daily(c)) / mfc_daily(c)
                                     ! No resources left for other sectors
                                     min_sfc_cons_limited_ratio_col(c) = 0.0_r8
 
                                  else
                                     ! The full manufacturing demand can be met, calculate remaining supply
-                                    total_cons_remaining(c) = total_cons_remaining(c) - mfc_daily
+                                    total_cons_remaining(c) = total_cons_remaining(c) - mfc_daily(c)
 
                                     ! Check if domestic + livestock + electricity + manufacturing + mining demand exceeds available supply
-                                    if (dom_daily + liv_daily + elec_daily + mfc_daily + min_daily > avail_volr_mm) then
+                                    if (dom_daily(c) + liv_daily(c) + elec_daily(c) + mfc_daily(c) + min_daily(c) > avail_volr_mm) then
                                        ! Only a portion of the mining demand can be satisfied
-                                       min_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily - liv_daily - elec_daily - mfc_daily) / min_daily
+                                       min_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily(c) - liv_daily(c) - elec_daily(c) - mfc_daily(c)) / min_daily(c)
                                     end if
                                  end if
                               end if
@@ -290,9 +331,9 @@ contains
 
                         ! Calculate the remaining supply for groundwater
                         if (total_cons_remaining(c)>0.0_r8) then
-                           if (dom_daily_gw > avail_s_y) then
+                           if (dom_daily_gw(c) > avail_s_y) then
                               ! Only a portion of the domestic demand can be satisfied
-                              dom_gw_cons_limited_ratio_col(c) = avail_s_y / dom_daily_gw
+                              dom_gw_cons_limited_ratio_col(c) = avail_s_y / dom_daily_gw(c)
                               ! No resources left for other sectors
                               liv_gw_cons_limited_ratio_col(c) = 0.0_r8
                               elec_gw_cons_limited_ratio_col(c) = 0.0_r8
@@ -300,12 +341,12 @@ contains
                               min_gw_cons_limited_ratio_col(c) = 0.0_r8
                            else
                               ! The full domestic demand can be met, calculate remaining supply
-                              total_cons_remaining(c) = total_cons_remaining(c) - dom_daily_gw
+                              total_cons_remaining(c) = total_cons_remaining(c) - dom_daily_gw(c)
 
                               ! Check if domestic + livestock demand exceeds available supply
-                              if (dom_daily_gw + liv_daily_gw > avail_s_y) then
+                              if (dom_daily_gw(c) + liv_daily_gw(c) > avail_s_y) then
                                  ! Only a portion of the livestock demand can be satisfied
-                                 liv_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw) / liv_daily_gw
+                                 liv_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw(c)) / liv_daily_gw(c)
                                  ! No resources left for other sectors
                                  elec_gw_cons_limited_ratio_col(c) = 0.0_r8
                                  mfc_gw_cons_limited_ratio_col(c) = 0.0_r8
@@ -313,35 +354,35 @@ contains
 
                               else
                                  ! The full livestock demand can be met, calculate remaining supply
-                                 total_cons_remaining(c) = total_cons_remaining(c) - liv_daily_gw
+                                 total_cons_remaining(c) = total_cons_remaining(c) - liv_daily_gw(c)
 
                                  ! Check if domestic + livestock + electricity demand exceeds available supply
-                                 if (dom_daily_gw + liv_daily_gw + elec_daily_gw > avail_s_y) then
+                                 if (dom_daily_gw(c) + liv_daily_gw(c) + elec_daily_gw(c) > avail_s_y) then
                                     ! Only a portion of the electricity demand can be satisfied
-                                    elec_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw-liv_daily_gw) / elec_daily_gw
+                                    elec_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw(c)-liv_daily_gw(c)) / elec_daily_gw(c)
                                     ! No resources left for other sectors
                                     mfc_gw_cons_limited_ratio_col(c) = 0.0_r8
                                     min_gw_cons_limited_ratio_col(c) = 0.0_r8
 
                                  else
                                     ! The full electricity demand can be met, calculate remaining supply
-                                    total_cons_remaining(c) = total_cons_remaining(c) - elec_daily_gw
+                                    total_cons_remaining(c) = total_cons_remaining(c) - elec_daily_gw(c)
 
                                     ! Check if domestic + livestock + electricity + manufacturing demand exceeds available supply
-                                    if (dom_daily_gw + liv_daily_gw + elec_daily_gw + mfc_daily_gw > avail_s_y) then
+                                    if (dom_daily_gw(c) + liv_daily_gw(c) + elec_daily_gw(c) + mfc_daily_gw(c) > avail_s_y) then
                                        ! Only a portion of the manufacturing demand can be satisfied
-                                       mfc_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw-liv_daily_gw-elec_daily_gw) / mfc_daily_gw
+                                       mfc_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw(c)-liv_daily_gw(c)-elec_daily_gw(c)) / mfc_daily_gw(c)
                                        ! No resources left for other sectors
                                        min_gw_cons_limited_ratio_col(c) = 0.0_r8
 
                                     else
                                        ! The full manufacturing demand can be met, calculate remaining supply
-                                       total_cons_remaining(c) = total_cons_remaining(c) - mfc_daily_gw
+                                       total_cons_remaining(c) = total_cons_remaining(c) - mfc_daily_gw(c)
 
                                        ! Check if domestic + livestock + electricity + manufacturing + mining demand exceeds available supply
-                                       if (dom_daily_gw + liv_daily_gw + elec_daily_gw + mfc_daily_gw + min_daily_gw > avail_s_y) then
+                                       if (dom_daily_gw(c) + liv_daily_gw(c) + elec_daily_gw(c) + mfc_daily_gw(c) + min_daily_gw(c) > avail_s_y) then
                                           ! Only a portion of the mining demand can be satisfied
-                                          min_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw-liv_daily_gw-elec_daily_gw-mfc_daily_gw) / min_daily_gw
+                                          min_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw(c)-liv_daily_gw(c)-elec_daily_gw(c)-mfc_daily_gw(c)) / min_daily_gw(c)
                                        end if
                                     end if
                                  end if
@@ -368,9 +409,9 @@ contains
                         w%waterflux_inst%qflx_gw_uncon_mfc_cons_col(c) = sectorwater_inst%mfc_cons_actual_grc(g)
                         w%waterflux_inst%qflx_gw_uncon_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g)
                      else
-                        if (dom_daily_gw > avail_s_y) then
+                        if (dom_daily_gw(c) > avail_s_y) then
                            ! Only a portion of the domestic demand can be satisfied
-                           dom_gw_cons_limited_ratio_col(c) = avail_s_y / dom_daily_gw
+                           dom_gw_cons_limited_ratio_col(c) = avail_s_y / dom_daily_gw(c)
                            ! No resources left for other sectors
                            liv_gw_cons_limited_ratio_col(c) = 0.0_r8
                            elec_gw_cons_limited_ratio_col(c) = 0.0_r8
@@ -378,12 +419,12 @@ contains
                            min_gw_cons_limited_ratio_col(c) = 0.0_r8
                         else
                            ! The full domestic demand can be met, calculate remaining supply
-                           total_cons_remaining(c) = total_cons_from_input(g) * 86400.0_r8 - dom_daily_gw
+                           total_cons_remaining(c) = total_cons_from_input(g) * 86400.0_r8 - dom_daily_gw(c)
 
                            ! Check if domestic + livestock demand exceeds available supply
-                           if (dom_daily_gw + liv_daily_gw > avail_s_y) then
+                           if (dom_daily_gw(c) + liv_daily_gw(c) > avail_s_y) then
                               ! Only a portion of the livestock demand can be satisfied
-                              liv_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw) / liv_daily_gw
+                              liv_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw(c)) / liv_daily_gw(c)
                               ! No resources left for other sectors
                               elec_gw_cons_limited_ratio_col(c) = 0.0_r8
                               mfc_gw_cons_limited_ratio_col(c) = 0.0_r8
@@ -391,35 +432,35 @@ contains
 
                            else
                               ! The full livestock demand can be met, calculate remaining supply
-                              total_cons_remaining(c) = total_cons_remaining(c) - liv_daily_gw
+                              total_cons_remaining(c) = total_cons_remaining(c) - liv_daily_gw(c)
 
                               ! Check if domestic + livestock + electricity demand exceeds available supply
-                              if (dom_daily_gw + liv_daily_gw + elec_daily_gw > avail_s_y) then
+                              if (dom_daily_gw(c) + liv_daily_gw(c) + elec_daily_gw(c) > avail_s_y) then
                                  ! Only a portion of the electricity demand can be satisfied
-                                 elec_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw-liv_daily_gw) / elec_daily_gw
+                                 elec_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw(c)-liv_daily_gw(c)) / elec_daily_gw(c)
                                  ! No resources left for other sectors
                                  mfc_gw_cons_limited_ratio_col(c) = 0.0_r8
                                  min_gw_cons_limited_ratio_col(c) = 0.0_r8
 
                               else
                                  ! The full electricity demand can be met, calculate remaining supply
-                                 total_cons_remaining(c) = total_cons_remaining(c) - elec_daily_gw
+                                 total_cons_remaining(c) = total_cons_remaining(c) - elec_daily_gw(c)
 
                                  ! Check if domestic + livestock + electricity + manufacturing demand exceeds available supply
-                                 if (dom_daily_gw + liv_daily_gw + elec_daily_gw + mfc_daily_gw > avail_s_y) then
+                                 if (dom_daily_gw(c) + liv_daily_gw(c) + elec_daily_gw(c) + mfc_daily_gw(c) > avail_s_y) then
                                     ! Only a portion of the manufacturing demand can be satisfied
-                                    mfc_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw-liv_daily_gw-elec_daily_gw) / mfc_daily_gw
+                                    mfc_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw(c)-liv_daily_gw(c)-elec_daily_gw(c)) / mfc_daily_gw(c)
                                     ! No resources left for other sectors
                                     min_gw_cons_limited_ratio_col(c) = 0.0_r8
 
                                  else
                                     ! The full manufacturing demand can be met, calculate remaining supply
-                                    total_cons_remaining(c) = total_cons_remaining(c) - mfc_daily_gw
+                                    total_cons_remaining(c) = total_cons_remaining(c) - mfc_daily_gw(c)
 
                                     ! Check if domestic + livestock + electricity + manufacturing + mining demand exceeds available supply
-                                    if (dom_daily_gw + liv_daily_gw + elec_daily_gw + mfc_daily_gw + min_daily_gw > avail_s_y) then
+                                    if (dom_daily_gw(c) + liv_daily_gw(c) + elec_daily_gw(c) + mfc_daily_gw(c) + min_daily_gw(c) > avail_s_y) then
                                        ! Only a portion of the mining demand can be satisfied
-                                       min_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw-liv_daily_gw-elec_daily_gw-mfc_daily_gw) / min_daily_gw
+                                       min_gw_cons_limited_ratio_col(c) = (avail_s_y-dom_daily_gw(c)-liv_daily_gw(c)-elec_daily_gw(c)-mfc_daily_gw(c)) / min_daily_gw(c)
                                     end if
                                  end if
                               end if
@@ -445,26 +486,29 @@ contains
 
                      ! check they have enough water for all sectors
                      if (total_cons_from_input(g) * 86400.0  < avail_volr_mm) then
+                        ! if (w%waterflux_inst%qflx_sfc_dom_cons_col(c) /= 0.0) then
+                        !    write(iulog,*) "qflx_sfc_dom_cons_col(c)", w%waterflux_inst%qflx_sfc_dom_cons_col(c)
+                        ! end if
                         w%waterflux_inst%qflx_sfc_dom_cons_col(c) = sectorwater_inst%dom_cons_actual_grc(g)
                         w%waterflux_inst%qflx_sfc_liv_cons_col(c) = sectorwater_inst%liv_cons_actual_grc(g)
                         w%waterflux_inst%qflx_sfc_elec_cons_col(c) = sectorwater_inst%elec_cons_actual_grc(g)
                         w%waterflux_inst%qflx_sfc_mfc_cons_col(c) = sectorwater_inst%mfc_cons_actual_grc(g)
                         w%waterflux_inst%qflx_sfc_min_cons_col(c) = sectorwater_inst%min_cons_actual_grc(g)
                      else
-                        if (dom_daily > avail_volr_mm) then
-                           dom_sfc_cons_limited_ratio_col(c) = avail_volr_mm / dom_daily 
+                        if (dom_daily(c) > avail_volr_mm) then
+                           dom_sfc_cons_limited_ratio_col(c) = avail_volr_mm / dom_daily(c) 
                            liv_sfc_cons_limited_ratio_col(c) = 0.0_r8
                            elec_sfc_cons_limited_ratio_col(c) = 0.0_r8
                            mfc_sfc_cons_limited_ratio_col(c) = 0.0_r8
                            min_sfc_cons_limited_ratio_col(c) = 0.0_r8
                         else
                            ! The full domestic demand can be met, calculate remaining supply
-                           total_cons_remaining(c) = total_cons_from_input(g) * 86400.0_r8 - dom_daily
+                           total_cons_remaining(c) = total_cons_from_input(g) * 86400.0_r8 - dom_daily(c)
 
                            ! Check if domestic + livestock demand exceeds available supply
-                           if (dom_daily + liv_daily > avail_volr_mm) then
+                           if (dom_daily(c) + liv_daily(c) > avail_volr_mm) then
                               ! Only a portion of the livestock demand can be satisfied
-                              liv_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily) / liv_daily
+                              liv_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily(c)) / liv_daily(c)
                               ! No resources left for other sectors
                               elec_sfc_cons_limited_ratio_col(c) = 0.0_r8
                               mfc_sfc_cons_limited_ratio_col(c) = 0.0_r8
@@ -472,35 +516,35 @@ contains
 
                            else
                               ! The full livestock demand can be met, calculate remaining supply
-                              total_cons_remaining(c) = total_cons_remaining(c) - liv_daily
+                              total_cons_remaining(c) = total_cons_remaining(c) - liv_daily(c)
 
                               ! Check if domestic + livestock + electricity demand exceeds available supply
-                              if (dom_daily + liv_daily + elec_daily > avail_volr_mm) then
+                              if (dom_daily(c) + liv_daily(c) + elec_daily(c) > avail_volr_mm) then
                                  ! Only a portion of the electricity demand can be satisfied
-                                 elec_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily - liv_daily) / elec_daily
+                                 elec_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily(c) - liv_daily(c)) / elec_daily(c)
                                  ! No resources left for other sectors
                                  mfc_sfc_cons_limited_ratio_col(c) = 0.0_r8
                                  min_sfc_cons_limited_ratio_col(c) = 0.0_r8
 
                               else
                                  ! The full electricity demand can be met, calculate remaining supply
-                                 total_cons_remaining(c) = total_cons_remaining(c) - elec_daily
+                                 total_cons_remaining(c) = total_cons_remaining(c) - elec_daily(c)
 
                                  ! Check if domestic + livestock + electricity + manufacturing demand exceeds available supply
-                                 if (dom_daily + liv_daily + elec_daily + mfc_daily > avail_volr_mm) then
+                                 if (dom_daily(c) + liv_daily(c) + elec_daily(c) + mfc_daily(c) > avail_volr_mm) then
                                     ! Only a portion of the manufacturing demand can be satisfied
-                                    mfc_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily - liv_daily - elec_daily) / mfc_daily
+                                    mfc_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily(c) - liv_daily(c) - elec_daily(c)) / mfc_daily(c)
                                     ! No resources left for other sectors
                                     min_sfc_cons_limited_ratio_col(c) = 0.0_r8
 
                                  else
                                     ! The full manufacturing demand can be met, calculate remaining supply
-                                    total_cons_remaining(c) = total_cons_remaining(c) - mfc_daily
+                                    total_cons_remaining(c) = total_cons_remaining(c) - mfc_daily(c)
 
                                     ! Check if domestic + livestock + electricity + manufacturing + mining demand exceeds available supply
-                                    if (dom_daily + liv_daily + elec_daily + mfc_daily + min_daily > avail_volr_mm) then
+                                    if (dom_daily(c) + liv_daily(c) + elec_daily(c) + mfc_daily(c) + min_daily(c) > avail_volr_mm) then
                                        ! Only a portion of the mining demand can be satisfied
-                                       min_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily - liv_daily - elec_daily - mfc_daily) / min_daily
+                                       min_sfc_cons_limited_ratio_col(c) = (avail_volr_mm - dom_daily(c) - liv_daily(c) - elec_daily(c) - mfc_daily(c)) / min_daily(c)
                                     end if
                                  end if
                               end if
@@ -521,6 +565,7 @@ contains
                      w%waterflux_inst%qflx_gw_con_sectorwater_col(c) = total_cons_from_input(g)
                   end if
                end if
+
 
                w%waterflux_inst%qflx_sfc_dom_cons_col(c) = w%waterflux_inst%qflx_sfc_dom_cons_col(c)  * dom_sfc_cons_limited_ratio_col(c)
                w%waterflux_inst%qflx_sfc_liv_cons_col(c) = w%waterflux_inst%qflx_sfc_liv_cons_col(c)  * liv_sfc_cons_limited_ratio_col(c)
@@ -544,10 +589,6 @@ contains
                w%waterflux_inst%qflx_gw_uncon_liv_cons_col(c) + w%waterflux_inst%qflx_gw_uncon_elec_cons_col(c) + &
                w%waterflux_inst%qflx_gw_uncon_mfc_cons_col(c) + w%waterflux_inst%qflx_gw_uncon_min_cons_col(c)
                
-               ![m3] = [mm/s]*[s/day]*[m2] = [mm/day]*[m2] = [m3/day]
-               sectorwater_inst%sectorwater_total_sfc_actual_withd(g) =&
-               sectorwater_inst%sectorwater_total_sfc_actual_withd(g)+ w%waterflux_inst%qflx_sfc_sectorwater_col(c) * 86400.0_r8
-
                ! if (w%waterflux_inst%qflx_sfc_sectorwater_col(c) /= 0.0) then
                !    write(iulog,*) "In hydroNoDrainage sectorwater", w%waterflux_inst%qflx_sfc_sectorwater_col(c)
                ! end if
@@ -568,13 +609,23 @@ contains
                w%waterflux_inst%qflx_gw_uncon_mfc_cons_col(c) = 0.0_r8
                w%waterflux_inst%qflx_gw_uncon_min_cons_col(c) = 0.0_r8
 
-               sectorwater_inst%sectorwater_total_sfc_actual_withd(g) = 0.0_r8
+               !sectorwater_inst%sectorwater_total_sfc_actual_withd(g) = 0.0_r8
                
                ! if (w%waterflux_inst%qflx_sfc_sectorwater_col(c) /= 0.0) then
                !    write(iulog,*) "In hydroNoDrainage sectorwater", w%waterflux_inst%qflx_sfc_sectorwater_col(c)
                ! end if
                
             end if
+          
+        end do
+        call c2g(bounds, &
+               carr = w%waterflux_inst%qflx_sfc_sectorwater_col(bounds%begc:bounds%endc), & ![mm/sec]
+               garr = sectorwater_inst%sectorwater_total_sfc_actual_withd(bounds%begg:bounds%endg), & ![m3/day]
+               c2l_scale_type = 'unity', &
+               l2g_scale_type = 'unity')
+        do g = bounds%begg, bounds%endg
+            sectorwater_inst%sectorwater_total_sfc_actual_withd(g) =&
+            sectorwater_inst%sectorwater_total_sfc_actual_withd(g) * 86400.0_r8 * grc%area(g) * 1.0E3_r8
         end do
         end associate
      end do
@@ -583,17 +634,44 @@ contains
       ! Remove groundwater sectorwater
       if (sectorwater_inst%UseGroundwaterSectorwater()) then
          do i = water_inst%bulk_and_tracers_beg, water_inst%bulk_and_tracers_end
+            associate(w => water_inst%bulk_and_tracers(i))
             call WithdrawGroundwaterSectorwater(bounds, num_soilc, filter_soilc, &
                   water_inst%bulk_and_tracers(i)%waterflux_inst, & ! for fluxes
                   water_inst%bulk_and_tracers(i)%waterstate_inst, &  ! for state
                   soilhydrology_inst, soilstate_inst)!, &
                   !qflx_gw_uncon_sectorwater_lyr=qflx_gw_uncon_sectorwater_lyr_col)
+            end associate
          end do
       end if
       !end associate
 
   deallocate(total_cons_from_input)
   deallocate(sum_s_y)
+  deallocate(dom_daily)
+  deallocate(liv_daily)
+  deallocate(elec_daily)
+  deallocate(mfc_daily)
+  deallocate(min_daily)
+
+  deallocate(dom_daily_gw)
+  deallocate(liv_daily_gw)
+  deallocate(elec_daily_gw)
+  deallocate(mfc_daily_gw)
+  deallocate(min_daily_gw)
+
+  deallocate(dom_sfc_cons_limited_ratio_col)
+  deallocate(liv_sfc_cons_limited_ratio_col)
+  deallocate(elec_sfc_cons_limited_ratio_col)
+  deallocate(mfc_sfc_cons_limited_ratio_col)
+  deallocate(min_sfc_cons_limited_ratio_col)
+
+  deallocate(dom_gw_cons_limited_ratio_col)
+  deallocate(liv_gw_cons_limited_ratio_col)
+  deallocate(elec_gw_cons_limited_ratio_col)
+  deallocate(mfc_gw_cons_limited_ratio_col)
+  deallocate(min_gw_cons_limited_ratio_col)
+
+  deallocate(total_cons_remaining)
 
   end subroutine CalcAndWithdrawSectorWaterFluxes
 
