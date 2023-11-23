@@ -266,6 +266,11 @@ contains
             avgflag='A', &
             long_name=this%info%lname('water in the unconfined aquifer (natural vegetated and crop landunits only)'), &
             ptr_col=this%wa_col, l2g_scale_type='veg')
+    else
+       call hist_addfld1d (fname=this%info%fname('WA'),  units='mm',  &
+            avgflag='A', &
+            long_name=this%info%lname('water in the confined aquifer (natural vegetated and crop landunits only)'), &
+            ptr_col=this%wa_col, l2g_scale_type='veg')
 
     end if
 
