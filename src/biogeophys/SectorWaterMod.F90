@@ -1018,47 +1018,47 @@ module SectorWaterMod
  
           ! Limit deficits by available volr, if desired. Note that we cannot do this limiting
           ! if running without a prognostic river model, since we need river volume to impose the limitation.
-          limit_sectorwater = (this%params%limit_sectorwater_if_rof_enabled .and. rof_prognostic)
-          if (limit_sectorwater) then
-               call this%CalcSectorDemandVolrLimited( &
-                    bounds = bounds, &
-                    dom_demand = dom_demand(bounds%begg:bounds%endg), &
-                    dom_consumption = dom_consumption(bounds%begg:bounds%endg), &
-                    liv_demand = liv_demand(bounds%begg:bounds%endg), &
-                    liv_consumption = liv_consumption(bounds%begg:bounds%endg), &
-                    elec_demand = elec_demand(bounds%begg:bounds%endg), &
-                    elec_consumption = elec_consumption(bounds%begg:bounds%endg), &
-                    mfc_demand = mfc_demand(bounds%begg:bounds%endg), &
-                    mfc_consumption = mfc_consumption(bounds%begg:bounds%endg), &
-                    min_demand = min_demand(bounds%begg:bounds%endg), &
-                    min_consumption = min_consumption(bounds%begg:bounds%endg), &
-                    volr = volr(bounds%begg:bounds%endg), &
-                    dom_demand_volr_limited = dom_demand_volr_limited(bounds%begg:bounds%endg), &
-                    dom_consumption_volr_limited = dom_consumption_volr_limited(bounds%begg:bounds%endg), &
-                    liv_demand_volr_limited = liv_demand_volr_limited(bounds%begg:bounds%endg), &
-                    liv_consumption_volr_limited = liv_consumption_volr_limited(bounds%begg:bounds%endg), &
-                    elec_demand_volr_limited = elec_demand_volr_limited(bounds%begg:bounds%endg), &
-                    elec_consumption_volr_limited = elec_consumption_volr_limited(bounds%begg:bounds%endg), &
-                    mfc_demand_volr_limited = mfc_demand_volr_limited(bounds%begg:bounds%endg), &
-                    mfc_consumption_volr_limited = mfc_consumption_volr_limited(bounds%begg:bounds%endg), &
-                    min_demand_volr_limited = min_demand_volr_limited(bounds%begg:bounds%endg), &
-                    min_consumption_volr_limited = min_consumption_volr_limited(bounds%begg:bounds%endg))
-          else
-               dom_demand_volr_limited(bounds%begg:bounds%endg)       = dom_demand(bounds%begg:bounds%endg)
-               dom_consumption_volr_limited(bounds%begg:bounds%endg)  = dom_consumption(bounds%begg:bounds%endg)
-               
-               liv_demand_volr_limited(bounds%begg:bounds%endg)       = liv_demand(bounds%begg:bounds%endg)
-               liv_consumption_volr_limited(bounds%begg:bounds%endg)  = liv_consumption(bounds%begg:bounds%endg)
-               
-               elec_demand_volr_limited(bounds%begg:bounds%endg)      = elec_demand(bounds%begg:bounds%endg)
-               elec_consumption_volr_limited(bounds%begg:bounds%endg) = elec_consumption(bounds%begg:bounds%endg)
-               
-               mfc_demand_volr_limited(bounds%begg:bounds%endg)       = mfc_demand(bounds%begg:bounds%endg)
-               mfc_consumption_volr_limited(bounds%begg:bounds%endg)  = mfc_consumption(bounds%begg:bounds%endg)
-               
-               min_demand_volr_limited(bounds%begg:bounds%endg)       = min_demand(bounds%begg:bounds%endg)
-               min_consumption_volr_limited(bounds%begg:bounds%endg)  = min_consumption(bounds%begg:bounds%endg)
-          end if
+          ! limit_sectorwater = (this%params%limit_sectorwater_if_rof_enabled .and. rof_prognostic)
+          ! if (limit_sectorwater) then
+          !      call this%CalcSectorDemandVolrLimited( &
+          !           bounds = bounds, &
+          !           dom_demand = dom_demand(bounds%begg:bounds%endg), &
+          !           dom_consumption = dom_consumption(bounds%begg:bounds%endg), &
+          !           liv_demand = liv_demand(bounds%begg:bounds%endg), &
+          !           liv_consumption = liv_consumption(bounds%begg:bounds%endg), &
+          !           elec_demand = elec_demand(bounds%begg:bounds%endg), &
+          !           elec_consumption = elec_consumption(bounds%begg:bounds%endg), &
+          !           mfc_demand = mfc_demand(bounds%begg:bounds%endg), &
+          !           mfc_consumption = mfc_consumption(bounds%begg:bounds%endg), &
+          !           min_demand = min_demand(bounds%begg:bounds%endg), &
+          !           min_consumption = min_consumption(bounds%begg:bounds%endg), &
+          !           volr = volr(bounds%begg:bounds%endg), &
+          !           dom_demand_volr_limited = dom_demand_volr_limited(bounds%begg:bounds%endg), &
+          !           dom_consumption_volr_limited = dom_consumption_volr_limited(bounds%begg:bounds%endg), &
+          !           liv_demand_volr_limited = liv_demand_volr_limited(bounds%begg:bounds%endg), &
+          !           liv_consumption_volr_limited = liv_consumption_volr_limited(bounds%begg:bounds%endg), &
+          !           elec_demand_volr_limited = elec_demand_volr_limited(bounds%begg:bounds%endg), &
+          !           elec_consumption_volr_limited = elec_consumption_volr_limited(bounds%begg:bounds%endg), &
+          !           mfc_demand_volr_limited = mfc_demand_volr_limited(bounds%begg:bounds%endg), &
+          !           mfc_consumption_volr_limited = mfc_consumption_volr_limited(bounds%begg:bounds%endg), &
+          !           min_demand_volr_limited = min_demand_volr_limited(bounds%begg:bounds%endg), &
+          !           min_consumption_volr_limited = min_consumption_volr_limited(bounds%begg:bounds%endg))
+          ! else
+          dom_demand_volr_limited(bounds%begg:bounds%endg)       = dom_demand(bounds%begg:bounds%endg)
+          dom_consumption_volr_limited(bounds%begg:bounds%endg)  = dom_consumption(bounds%begg:bounds%endg)
+          
+          liv_demand_volr_limited(bounds%begg:bounds%endg)       = liv_demand(bounds%begg:bounds%endg)
+          liv_consumption_volr_limited(bounds%begg:bounds%endg)  = liv_consumption(bounds%begg:bounds%endg)
+          
+          elec_demand_volr_limited(bounds%begg:bounds%endg)      = elec_demand(bounds%begg:bounds%endg)
+          elec_consumption_volr_limited(bounds%begg:bounds%endg) = elec_consumption(bounds%begg:bounds%endg)
+          
+          mfc_demand_volr_limited(bounds%begg:bounds%endg)       = mfc_demand(bounds%begg:bounds%endg)
+          mfc_consumption_volr_limited(bounds%begg:bounds%endg)  = mfc_consumption(bounds%begg:bounds%endg)
+          
+          min_demand_volr_limited(bounds%begg:bounds%endg)       = min_demand(bounds%begg:bounds%endg)
+          min_consumption_volr_limited(bounds%begg:bounds%endg)  = min_consumption(bounds%begg:bounds%endg)
+          ! end if
  
           ! Convert demand to withdrawal rates [mm/s]
           ! Here it also seems like I could directly operate with the this%arrays instead of generating new ones (to check)

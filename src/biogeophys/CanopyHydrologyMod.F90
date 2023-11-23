@@ -411,7 +411,9 @@ contains
              qflx_through_liq   = w%waterflux_inst%qflx_through_liq_patch(begp:endp), &
              qflx_liqcanfall    = w%waterflux_inst%qflx_liqcanfall_patch(begp:endp), &
              qflx_irrig_drip    = w%waterflux_inst%qflx_irrig_drip_patch(begp:endp), &
-             qflx_sectorwater   = w%waterflux_inst%qflx_sfc_sectorwater_col(begc:endc), &
+             qflx_sectorwater   = w%waterflux_inst%qflx_sfc_sectorwater_col(begc:endc)+ &
+                                  w%waterflux_inst%qflx_gw_uncon_sectorwater_col(begc:endc)+ &
+                                  w%waterflux_inst%qflx_gw_con_sectorwater_col(begc:endc), &
              ! Outputs
              qflx_snow_grnd_col = w%waterflux_inst%qflx_snow_grnd_col(begc:endc), &
              qflx_liq_grnd_col  = w%waterflux_inst%qflx_liq_grnd_col(begc:endc), &
@@ -1106,9 +1108,9 @@ contains
      ! This way we avoid interference with irrigated columns. 
      ! So that the other sectors do not affect total irrigation, except for sectoral competition during the withdrawal process.
      do c = begc, endc
-         if (qflx_sectorwater(c) /= 0.0) then
-            write(iulog,*) "In canopy sectorwater", qflx_sectorwater(c)
-         end if
+         ! if (qflx_sectorwater(c) /= 0.0) then
+         !    write(iulog,*) "In canopy sectorwater", qflx_sectorwater(c)
+         ! end if
          qflx_liq_grnd_col(c) = qflx_liq_grnd_col(c) + qflx_sectorwater(c)
      end do
 
