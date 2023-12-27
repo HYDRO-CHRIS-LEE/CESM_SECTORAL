@@ -233,7 +233,7 @@ contains
    
 
                if(sum_s_y(c)>0.0_r8) then ! groundwater: +
-                  avail_s_y(c) = sum_s_y(c) * 0.2_r8 ! limit the gw for sectoral water use to 20% [mm]
+                  avail_s_y(c) = sum_s_y(c) * (1.0_r8 - sectorwater_inst%params%sectorwater_groundwater_threshold) ! [mm]
 
                   if (volr(g)>0.0_r8) then ! 1111 river: +, groundwater: +
                      avail_volr(g) = volr(g) * (1.0_r8 - sectorwater_inst%params%sectorwater_river_volume_threshold) ! [m3]

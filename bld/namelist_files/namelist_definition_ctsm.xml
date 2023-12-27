@@ -501,6 +501,13 @@ A threshold of 0 means allow all current river water to be used;
 a threshold of 0.1 means allow 90% of the current river volume to be used; etc.
 </entry>
 
+<entry id="sectorwater_groundwater_threshold" type="real" category="clm_physics"
+       group="sectorwater_inparm" valid_values="">
+Threshold for groundwater below which sectoral withdrawal is shut off (as a fraction of available groundwater)
+A threshold of 0 means allow all current groundwater to be used;
+a threshold of 0.1 means allow 90% of the current groundwater to be used; etc.
+</entry>
+
 <entry id="limit_sectorwater_if_rof_enabled" type="logical" category="clm_physics"
        group="sectorwater_inparm" valid_values="" >
 If TRUE, limit sectoral water withdrawal to avoid depleting the river and having negative runoff.

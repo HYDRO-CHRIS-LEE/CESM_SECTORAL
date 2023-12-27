@@ -26,6 +26,7 @@ module SectorWaterMod
        ! river volume to be used; etc.
        ! This is done to protect against negative runoff, caused by extracting more water than currently available.
        real(r8) :: sectorwater_river_volume_threshold
+       real(r8) :: sectorwater_groundwater_threshold
  
        ! Whether sectorwater usage is limited based on river storage. This only applies if ROF is
        ! enabled (i.e., rof_prognostic is .true.) - otherwise we don't limit sectorwater usage,
@@ -145,6 +146,7 @@ module SectorWaterMod
  
     !-----------------------------------------------------------------------
      function sectorwater_params_constructor(sectorwater_river_volume_threshold, &
+          sectorwater_groundwater_threshold, &
           limit_sectorwater_if_rof_enabled, path_sectorwater_input_data,  &
           use_groundwater_sectorwater) &
           result(this)
@@ -157,6 +159,7 @@ module SectorWaterMod
        ! !ARGUMENTS:
        type(sectorwater_params_type) :: this  ! function result
        real(r8), intent(in) :: sectorwater_river_volume_threshold
+       real(r8), intent(in) :: sectorwater_groundwater_threshold
        logical , intent(in) :: limit_sectorwater_if_rof_enabled
        logical , intent(in) :: use_groundwater_sectorwater
        character(len=256), intent(in) :: path_sectorwater_input_data
@@ -166,6 +169,7 @@ module SectorWaterMod
        character(len=*), parameter :: subname = 'sectorwater_params_constructor'
        !-----------------------------------------------------------------------
        this%sectorwater_river_volume_threshold = sectorwater_river_volume_threshold
+       this%sectorwater_groundwater_threshold = sectorwater_groundwater_threshold
        this%limit_sectorwater_if_rof_enabled = limit_sectorwater_if_rof_enabled
        this%use_groundwater_sectorwater = use_groundwater_sectorwater
        this%path_sectorwater_input_data = path_sectorwater_input_data
@@ -211,6 +215,7 @@ module SectorWaterMod
  
           ! temporary variables corresponding to the components of sectorwater_params_type
           real(r8) :: sectorwater_river_volume_threshold
+          real(r8) :: sectorwater_groundwater_threshold
           logical  :: limit_sectorwater_if_rof_enabled
           logical  :: use_groundwater_sectorwater
           character(len=256) :: path_sectorwater_input_data
@@ -221,12 +226,13 @@ module SectorWaterMod
           character(len=*), parameter :: subname = 'ReadNamelist'
           !-----------------------------------------------------------------------
  
-          namelist /sectorwater_inparm/ sectorwater_river_volume_threshold, limit_sectorwater_if_rof_enabled, &
+          namelist /sectorwater_inparm/ sectorwater_river_volume_threshold, sectorwater_groundwater_threshold, limit_sectorwater_if_rof_enabled, &
           use_groundwater_sectorwater, path_sectorwater_input_data
     
           ! Initialize options to garbage defaults, forcing all to be specified explicitly in
           ! order to get reasonable results
           sectorwater_river_volume_threshold = nan
+          sectorwater_groundwater_threshold = nan
           limit_sectorwater_if_rof_enabled = .false.
           use_groundwater_sectorwater = .false.
           path_sectorwater_input_data = ' '
@@ -252,11 +258,13 @@ module SectorWaterMod
           end if
 
           call shr_mpi_bcast(sectorwater_river_volume_threshold, mpicom)
+          call shr_mpi_bcast(sectorwater_groundwater_threshold, mpicom)
           call shr_mpi_bcast(limit_sectorwater_if_rof_enabled, mpicom)
           call shr_mpi_bcast(use_groundwater_sectorwater, mpicom)
           call shr_mpi_bcast(path_sectorwater_input_data, mpicom)
 
           this%params = sectorwater_params_type(sectorwater_river_volume_threshold = sectorwater_river_volume_threshold, &
+          sectorwater_groundwater_threshold = sectorwater_groundwater_threshold, &
           limit_sectorwater_if_rof_enabled = limit_sectorwater_if_rof_enabled, &
           use_groundwater_sectorwater = use_groundwater_sectorwater, &
           path_sectorwater_input_data = path_sectorwater_input_data)
@@ -266,9 +274,11 @@ module SectorWaterMod
                write(iulog,*) nmlname_sectorwater//' settings:'
                ! Write settings one-by-one rather than with a nml write because
                ! sectorwater_river_volume_threshold may be NaN
+               ! sectorwater_groundwater_threshold may be NaN
                write(iulog,*) 'limit_sectorwater_if_rof_enabled = ', limit_sectorwater_if_rof_enabled
                if (limit_sectorwater_if_rof_enabled) then
                     write(iulog,*) 'sectorwater_river_volume_threshold = ', sectorwater_river_volume_threshold
+                    write(iulog,*) 'sectorwater_groundwater_threshold = ', sectorwater_groundwater_threshold
                end if
                write(iulog,*) 'use_groundwater_sectorwater = ', use_groundwater_sectorwater
                write(iulog,*) 'path_sectorwater_input_data = ', path_sectorwater_input_data
@@ -300,6 +310,7 @@ module SectorWaterMod
           
           associate( &
                sectorwater_river_volume_threshold => this%params%sectorwater_river_volume_threshold, &
+               sectorwater_groundwater_threshold => this%params%sectorwater_groundwater_threshold, &
                limit_sectorwater_if_rof_enabled => this%params%limit_sectorwater_if_rof_enabled, &
                use_groundwater_sectorwater => this%params%use_groundwater_sectorwater)
           
@@ -308,6 +319,12 @@ module SectorWaterMod
                     write(iulog,*) ' ERROR: sectorwater_river_volume_threshold must be between 0 and 1'
                     write(iulog,*) ' sectorwater_river_volume_threshold = ', sectorwater_river_volume_threshold
                     call endrun(msg=' ERROR: sectorwater_river_volume_threshold must be between 0 and 1 ' // &
+                         errMsg(sourcefile, __LINE__))
+               end if
+               if (sectorwater_groundwater_threshold < 0._r8 .or. sectorwater_groundwater_threshold > 1._r8) then
+                    write(iulog,*) ' ERROR: sectorwater_groundwater_threshold must be between 0 and 1'
+                    write(iulog,*) ' sectorwater_groundwater_threshold = ', sectorwater_groundwater_threshold
+                    call endrun(msg=' ERROR: sectorwater_groundwater_threshold must be between 0 and 1 ' // &
                          errMsg(sourcefile, __LINE__))
                end if
           end if

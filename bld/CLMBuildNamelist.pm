@@ -2927,7 +2927,7 @@ sub setup_logic_sectorwater_parameters {
   my ($opts, $nl_flags, $definition, $defaults, $nl) = @_;
 
   my $var;
-  foreach $var ("limit_sectorwater_if_rof_enabled", "use_groundwater_sectorwater") {
+  foreach $var ("limit_sectorwater_if_rof_enabled", "use_groundwater_sectorwater", "sectorwater_groundwater_threshold") {
      add_default($opts, $nl_flags->{'inputdata_rootdir'}, $definition, $defaults, $nl, $var);
   }
 
