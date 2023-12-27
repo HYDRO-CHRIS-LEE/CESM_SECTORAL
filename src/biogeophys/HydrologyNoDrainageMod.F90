@@ -647,20 +647,17 @@ contains
         end associate
      end do
      
-      !associate(qflx_gw_uncon_sectorwater_lyr_col => waterflux_inst%qflx_gw_uncon_sectorwater_lyr_col) 
-      ! Remove groundwater sectorwater
-      if (sectorwater_inst%UseGroundwaterSectorwater()) then
-         do i = water_inst%bulk_and_tracers_beg, water_inst%bulk_and_tracers_end
-            associate(w => water_inst%bulk_and_tracers(i))
-            call WithdrawGroundwaterSectorwater(bounds, num_soilc, filter_soilc, &
-                  w%waterflux_inst, & ! for fluxes
-                  w%waterstate_inst, &  ! for state
-                  soilhydrology_inst, soilstate_inst)!, &
-                  !qflx_gw_uncon_sectorwater_lyr=qflx_gw_uncon_sectorwater_lyr_col)
-            end associate
-         end do
-      end if
-      !end associate
+     ! Remove groundwater sectorwater
+     if (sectorwater_inst%UseGroundwaterSectorwater()) then
+        do i = water_inst%bulk_and_tracers_beg, water_inst%bulk_and_tracers_end
+           associate(w => water_inst%bulk_and_tracers(i))
+           call WithdrawGroundwaterSectorwater(bounds, num_soilc, filter_soilc, &
+                 w%waterflux_inst, & ! for fluxes
+                 w%waterstate_inst, &  ! for state
+                 soilhydrology_inst, soilstate_inst)
+           end associate
+        end do
+     end if
 
   deallocate(total_cons_from_input)
   deallocate(sum_s_y)
