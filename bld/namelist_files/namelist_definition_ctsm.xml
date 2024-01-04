@@ -515,6 +515,11 @@ Only applies if using an active runoff (ROF) model; otherwise, river storage-bas
 is turned off regardless of the setting of this namelist variable.
 </entry>
 
+<entry id="use_sfc_first" type="logical" category="clm_physics"
+       group="sectorwater_inparm" valid_values="" >
+If TRUE, allocate demand to surface water first when the whole water resources are enough.
+</entry>
+
 <entry id="path_sectorwater_input_data" type="char*256" category="clm_physics"
        group="sectorwater_inparm" valid_values="" >
 Path to a .txt file containing the list of paths to each year input data (netcdf files) on sector water usage.

@@ -32,6 +32,8 @@ module SectorWaterMod
        ! enabled (i.e., rof_prognostic is .true.) - otherwise we don't limit sectorwater usage,
        ! regardless of the value of this flag.
        logical :: limit_sectorwater_if_rof_enabled      
+
+       logical :: use_sfc_first
        
        ! The sectoral water usage is computed based on the provided input data
        ! path_sectorwater_input_data is the path to a .txt file containing the paths to each year .nc file with sectoral withdrawal and consumption data
@@ -148,7 +150,7 @@ module SectorWaterMod
      function sectorwater_params_constructor(sectorwater_river_volume_threshold, &
           sectorwater_groundwater_threshold, &
           limit_sectorwater_if_rof_enabled, path_sectorwater_input_data,  &
-          use_groundwater_sectorwater) &
+          use_groundwater_sectorwater, use_sfc_first) &
           result(this)
        !
        ! !DESCRIPTION:
@@ -161,6 +163,7 @@ module SectorWaterMod
        real(r8), intent(in) :: sectorwater_river_volume_threshold
        real(r8), intent(in) :: sectorwater_groundwater_threshold
        logical , intent(in) :: limit_sectorwater_if_rof_enabled
+       logical , intent(in) :: use_sfc_first
        logical , intent(in) :: use_groundwater_sectorwater
        character(len=256), intent(in) :: path_sectorwater_input_data
        !
@@ -171,6 +174,7 @@ module SectorWaterMod
        this%sectorwater_river_volume_threshold = sectorwater_river_volume_threshold
        this%sectorwater_groundwater_threshold = sectorwater_groundwater_threshold
        this%limit_sectorwater_if_rof_enabled = limit_sectorwater_if_rof_enabled
+       this%use_sfc_first = use_sfc_first
        this%use_groundwater_sectorwater = use_groundwater_sectorwater
        this%path_sectorwater_input_data = path_sectorwater_input_data
 
@@ -217,6 +221,7 @@ module SectorWaterMod
           real(r8) :: sectorwater_river_volume_threshold
           real(r8) :: sectorwater_groundwater_threshold
           logical  :: limit_sectorwater_if_rof_enabled
+          logical  :: use_sfc_first
           logical  :: use_groundwater_sectorwater
           character(len=256) :: path_sectorwater_input_data
           integer  :: ierr                 ! error code
@@ -234,6 +239,7 @@ module SectorWaterMod
           sectorwater_river_volume_threshold = nan
           sectorwater_groundwater_threshold = nan
           limit_sectorwater_if_rof_enabled = .false.
+          use_sfc_first = .false.
           use_groundwater_sectorwater = .false.
           path_sectorwater_input_data = ' '
  
@@ -260,12 +266,14 @@ module SectorWaterMod
           call shr_mpi_bcast(sectorwater_river_volume_threshold, mpicom)
           call shr_mpi_bcast(sectorwater_groundwater_threshold, mpicom)
           call shr_mpi_bcast(limit_sectorwater_if_rof_enabled, mpicom)
+          call shr_mpi_bcast(use_sfc_first, mpicom)
           call shr_mpi_bcast(use_groundwater_sectorwater, mpicom)
           call shr_mpi_bcast(path_sectorwater_input_data, mpicom)
 
           this%params = sectorwater_params_type(sectorwater_river_volume_threshold = sectorwater_river_volume_threshold, &
           sectorwater_groundwater_threshold = sectorwater_groundwater_threshold, &
           limit_sectorwater_if_rof_enabled = limit_sectorwater_if_rof_enabled, &
+          use_sfc_first = use_sfc_first, &
           use_groundwater_sectorwater = use_groundwater_sectorwater, &
           path_sectorwater_input_data = path_sectorwater_input_data)
           
@@ -280,6 +288,7 @@ module SectorWaterMod
                     write(iulog,*) 'sectorwater_river_volume_threshold = ', sectorwater_river_volume_threshold
                     write(iulog,*) 'sectorwater_groundwater_threshold = ', sectorwater_groundwater_threshold
                end if
+               write(iulog,*) 'use_sfc_first = ', use_sfc_first
                write(iulog,*) 'use_groundwater_sectorwater = ', use_groundwater_sectorwater
                write(iulog,*) 'path_sectorwater_input_data = ', path_sectorwater_input_data
                write(iulog,*) ' '
@@ -312,6 +321,7 @@ module SectorWaterMod
                sectorwater_river_volume_threshold => this%params%sectorwater_river_volume_threshold, &
                sectorwater_groundwater_threshold => this%params%sectorwater_groundwater_threshold, &
                limit_sectorwater_if_rof_enabled => this%params%limit_sectorwater_if_rof_enabled, &
+               use_sfc_first => this%params%use_sfc_first, &
                use_groundwater_sectorwater => this%params%use_groundwater_sectorwater)
           
           if (limit_sectorwater_if_rof_enabled) then
