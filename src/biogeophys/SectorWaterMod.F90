@@ -232,7 +232,7 @@ module SectorWaterMod
           !-----------------------------------------------------------------------
  
           namelist /sectorwater_inparm/ sectorwater_river_volume_threshold, sectorwater_groundwater_threshold, limit_sectorwater_if_rof_enabled, &
-          use_groundwater_sectorwater, path_sectorwater_input_data
+          use_sfc_first, use_groundwater_sectorwater, path_sectorwater_input_data
     
           ! Initialize options to garbage defaults, forcing all to be specified explicitly in
           ! order to get reasonable results

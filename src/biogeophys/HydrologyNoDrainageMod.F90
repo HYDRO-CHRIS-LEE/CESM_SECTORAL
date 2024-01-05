@@ -189,7 +189,7 @@ contains
 
      if (is_beg_curr_day()) then
         call sectorwater_inst%CalcSectorWaterNeeded(bounds, volr, rof_prognostic)
-     endif
+     end if
 
      ! Compute total sectoral consumption
      ! This consumption flux will be applied on surface soil of the natural vegetation column
@@ -769,9 +769,6 @@ contains
         end associate
      end do
      
-     
-     ! 215 ~ 648 do loop
-
      ! Remove groundwater sectorwater
      if (sectorwater_inst%UseGroundwaterSectorwater()) then
         do i = water_inst%bulk_and_tracers_beg, water_inst%bulk_and_tracers_end
@@ -1199,7 +1196,7 @@ contains
       do fc = 1, num_nosnowc
          c = filter_nosnowc(fc)
          snow_persistence(c) = 0._r8
-      enddo
+      end do
 
       ! Vertically average t_soisno and sum of h2osoi_liq and h2osoi_ice
       ! over all snow layers for history output
@@ -1329,7 +1326,7 @@ contains
                  + frac_h2osfc(c) * t_h2osfc(c)
          else
             t_grnd(c) = (1.0_r8 - frac_h2osfc(c)) * t_soisno(c,1) + frac_h2osfc(c) * t_h2osfc(c)
-         endif
+         end if
 
          if (lun%urbpoi(l)) then
             t_grnd_u(c) = t_soisno(c,snl(c)+1)
@@ -1363,7 +1360,7 @@ contains
          end do
       end do
 
-!      if (use_cn) then
+      ! if (use_cn) then
          ! Update soilpsi.
          ! ZMS: Note this could be merged with the following loop updating smp_l in the future.
          do j = 1, nlevgrnd
@@ -1387,7 +1384,7 @@ contains
                end if
             end do
          end do
-!      end if
+      ! end if
 
       ! Update smp_l for history and for ch4Mod.
       ! ZMS: Note, this form, which seems to be the same as used in SoilWater, DOES NOT distinguish between
@@ -1405,7 +1402,7 @@ contains
          end do
       end do
 
- !     if (use_cn) then
+      ! if (use_cn) then
          ! Available soil water up to a depth of 0.05 m.
          ! Potentially available soil water (=whc) up to a depth of 0.05 m.
          ! Water content as fraction of whc up to a depth of 0.05 m.
@@ -1467,13 +1464,13 @@ contains
             end if
             wf2(c) = tsw/stsw
          end do
-  !    end if
+     ! end if
 
       ! top-layer diagnostics
       do fc = 1, num_snowc
          c = filter_snowc(fc)
          h2osno_top(c)  = h2osoi_ice(c,snl(c)+1) + h2osoi_liq(c,snl(c)+1)
-      enddo
+      end do
 
       ! Zero variables in columns without snow
       do fc = 1, num_nosnowc
