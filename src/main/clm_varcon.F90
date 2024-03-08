@@ -120,7 +120,7 @@ module clm_varcon
   real(r8), public :: csol_bedrock = 2.0e6_r8 ! vol. heat capacity of granite/sandstone  J/(m3 K)(Shabbir, 2000)
   real(r8), public, parameter :: zmin_bedrock = 0.4_r8 ! minimum soil depth [m]
 
-  real(r8), public, parameter :: aquifer_water_baseline = 1000._r8 ! baseline value for water in the unconfined aquifer [mm]
+  real(r8), public, parameter :: aquifer_water_baseline = 5000._r8 ! baseline value for water in the unconfined aquifer [mm]
   real(r8), public, parameter :: c_to_b = 2.0_r8         ! conversion between mass carbon and total biomass (g biomass /g C)
   
   !!! C13

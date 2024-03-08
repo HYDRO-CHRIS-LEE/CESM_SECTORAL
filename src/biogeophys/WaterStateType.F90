@@ -260,19 +260,19 @@ contains
          long_name=this%info%lname('surface water depth'), &
          ptr_col=this%h2osfc_col)
 
-    !if (use_aquifer_layer) then
-    this%wa_col(begc:endc) = spval
-    call hist_addfld1d (fname=this%info%fname('WA'),  units='mm',  &
-       avgflag='A', &
-       long_name=this%info%lname('water in the confined aquifer (natural vegetated and crop landunits only)'), &
-       ptr_col=this%wa_col, l2g_scale_type='veg')
-   !  else
-   !     this%wa_col(begc:endc) = spval
-   !     call hist_addfld1d (fname=this%info%fname('WA_confined'),  units='mm',  &
-   !          avgflag='A', &
-   !          long_name=this%info%lname('water in the confined aquifer (natural vegetated and crop landunits only)'), &
-   !          ptr_col=this%wa_col, l2g_scale_type='veg')
-    !end if
+    if (use_aquifer_layer) then
+      this%wa_col(begc:endc) = spval
+      call hist_addfld1d (fname=this%info%fname('WA'),  units='mm',  &
+         avgflag='A', &
+         long_name=this%info%lname('water in the unconfined aquifer (natural vegetated and crop landunits only)'), &
+         ptr_col=this%wa_col, l2g_scale_type='veg')
+    else
+      this%wa_col(begc:endc) = spval
+      call hist_addfld1d (fname=this%info%fname('WA_confined'),  units='mm',  &
+         avgflag='A', &
+         long_name=this%info%lname('water in the confined aquifer (natural vegetated and crop landunits only)'), &
+         ptr_col=this%wa_col, l2g_scale_type='veg')
+    end if
 
     ! (rgk 02-02-2017) There is intentionally no entry  here for stored plant water
     !                  I think that since the value is zero in all cases except
@@ -505,7 +505,6 @@ contains
          end do
       end if
 
-      this%wa_col(bounds%begc:bounds%endc)  = 1000._r8
 
       ! Initialize dynbal_baseline_liq_col and dynbal_baseline_ice_col: for some columns,
       ! these are set elsewhere in initialization, but we need them to be 0 for columns
