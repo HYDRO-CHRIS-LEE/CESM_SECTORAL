@@ -107,21 +107,37 @@ module WaterFluxType
      real(r8), pointer :: qflx_gw_uncon_sectorwater_col   (:)   ! col unconfined groundwater sectorwater flux (mm H2O/s)
      real(r8), pointer :: qflx_gw_uncon_sectorwater_lyr_col(:,:) ! col unconfined groundwater sectorwater flux, separated by layer (mm H2O/s)
      real(r8), pointer :: qflx_gw_con_sectorwater_col     (:)   ! col confined groundwater sectorwater flux (mm H2O/s)
-     real(r8), pointer :: qflx_sfc_dom_cons_col          (:)   ! col surface domestic consumption flux (mm H2O/s)
-     real(r8), pointer :: qflx_gw_uncon_dom_cons_col     (:)   ! col unconfined groundwater domestic consumption flux (mm H2O/s)
-     !real(r8), pointer :: qflx_gw_con_dom_cons_col       (:)   ! col confined groundwater domestic consumption flux (mm H2O/s)
-     real(r8), pointer :: qflx_sfc_liv_cons_col          (:)   ! col surface livestock consumption flux (mm H2O/s)
-     real(r8), pointer :: qflx_gw_uncon_liv_cons_col     (:)   ! col unconfined groundwater livestock consumption flux (mm H2O/s)
-     !real(r8), pointer :: qflx_gw_con_liv_cons_col       (:)   ! col confined groundwater livestock consumption flux (mm H2O/s)
-     real(r8), pointer :: qflx_sfc_elec_cons_col        (:)   ! col surface thermoelectric consumption flux (mm H2O/s)
-     real(r8), pointer :: qflx_gw_uncon_elec_cons_col   (:)   ! col unconfined groundwater thermoelectric consumption flux (mm H2O/s)
-     !real(r8), pointer :: qflx_gw_con_elec_cons_col     (:)   ! col confined groundwater thermoelectric consumption flux (mm H2O/s)
-     real(r8), pointer :: qflx_sfc_mfc_cons_col         (:)   ! col surface manufacturing consumption flux (mm H2O/s)
-     real(r8), pointer :: qflx_gw_uncon_mfc_cons_col    (:)   ! col unconfined groundwater manufacturing consumption flux (mm H2O/s)
-     !real(r8), pointer :: qflx_gw_con_mfc_cons_col      (:)   ! col confined groundwater manufacturing consumption flux (mm H2O/s)
-     real(r8), pointer :: qflx_sfc_min_cons_col         (:)   ! col surface mining consumption flux (mm H2O/s)
-     real(r8), pointer :: qflx_gw_uncon_min_cons_col    (:)   ! col unconfined groundwater mining consumption flux (mm H2O/s)
-     !real(r8), pointer :: qflx_gw_con_min_cons_col      (:)   ! col confined groundwater mining consumption flux (mm H2O/s)
+     real(r8), pointer :: qflx_sfc_dom_withd_col          (:)   ! col surface domestic consumption flux (mm H2O/s)
+     real(r8), pointer :: qflx_gw_uncon_dom_withd_col     (:)   ! col unconfined groundwater domestic consumption flux (mm H2O/s)
+     !real(r8), pointer :: qflx_gw_con_dom_withd_col       (:)   ! col confined groundwater domestic consumption flux (mm H2O/s)
+     real(r8), pointer :: qflx_sfc_liv_withd_col          (:)   ! col surface livestock consumption flux (mm H2O/s)
+     real(r8), pointer :: qflx_gw_uncon_liv_withd_col     (:)   ! col unconfined groundwater livestock consumption flux (mm H2O/s)
+     !real(r8), pointer :: qflx_gw_con_liv_withd_col       (:)   ! col confined groundwater livestock consumption flux (mm H2O/s)
+     real(r8), pointer :: qflx_sfc_elec_withd_col        (:)   ! col surface thermoelectric consumption flux (mm H2O/s)
+     real(r8), pointer :: qflx_gw_uncon_elec_withd_col   (:)   ! col unconfined groundwater thermoelectric consumption flux (mm H2O/s)
+     !real(r8), pointer :: qflx_gw_con_elec_withd_col     (:)   ! col confined groundwater thermoelectric consumption flux (mm H2O/s)
+     real(r8), pointer :: qflx_sfc_mfc_withd_col         (:)   ! col surface manufacturing consumption flux (mm H2O/s)
+     real(r8), pointer :: qflx_gw_uncon_mfc_withd_col    (:)   ! col unconfined groundwater manufacturing consumption flux (mm H2O/s)
+     !real(r8), pointer :: qflx_gw_con_mfc_withd_col      (:)   ! col confined groundwater manufacturing consumption flux (mm H2O/s)
+     real(r8), pointer :: qflx_sfc_min_withd_col         (:)   ! col surface mining consumption flux (mm H2O/s)
+     real(r8), pointer :: qflx_gw_uncon_min_withd_col    (:)   ! col unconfined groundwater mining consumption flux (mm H2O/s)
+     !real(r8), pointer :: qflx_gw_con_min_withd_col      (:)   ! col confined groundwater mining consumption flux (mm H2O/s)
+
+     ! real(r8), pointer :: qflx_sfc_dom_cons_col          (:)   ! col surface domestic consumption flux (mm H2O/s)
+     ! real(r8), pointer :: qflx_gw_uncon_dom_cons_col     (:)   ! col unconfined groundwater domestic consumption flux (mm H2O/s)
+     ! !real(r8), pointer :: qflx_gw_con_dom_cons_col       (:)   ! col confined groundwater domestic consumption flux (mm H2O/s)
+     ! real(r8), pointer :: qflx_sfc_liv_cons_col          (:)   ! col surface livestock consumption flux (mm H2O/s)
+     ! real(r8), pointer :: qflx_gw_uncon_liv_cons_col     (:)   ! col unconfined groundwater livestock consumption flux (mm H2O/s)
+     ! !real(r8), pointer :: qflx_gw_con_liv_cons_col       (:)   ! col confined groundwater livestock consumption flux (mm H2O/s)
+     ! real(r8), pointer :: qflx_sfc_elec_cons_col        (:)   ! col surface thermoelectric consumption flux (mm H2O/s)
+     ! real(r8), pointer :: qflx_gw_uncon_elec_cons_col   (:)   ! col unconfined groundwater thermoelectric consumption flux (mm H2O/s)
+     ! !real(r8), pointer :: qflx_gw_con_elec_cons_col     (:)   ! col confined groundwater thermoelectric consumption flux (mm H2O/s)
+     ! real(r8), pointer :: qflx_sfc_mfc_cons_col         (:)   ! col surface manufacturing consumption flux (mm H2O/s)
+     ! real(r8), pointer :: qflx_gw_uncon_mfc_cons_col    (:)   ! col unconfined groundwater manufacturing consumption flux (mm H2O/s)
+     ! !real(r8), pointer :: qflx_gw_con_mfc_cons_col      (:)   ! col confined groundwater manufacturing consumption flux (mm H2O/s)
+     ! real(r8), pointer :: qflx_sfc_min_cons_col         (:)   ! col surface mining consumption flux (mm H2O/s)
+     ! real(r8), pointer :: qflx_gw_uncon_min_cons_col    (:)   ! col unconfined groundwater mining consumption flux (mm H2O/s)
+     ! !real(r8), pointer :: qflx_gw_con_min_cons_col      (:)   ! col confined groundwater mining consumption flux (mm H2O/s)
 
 
      ! Objects that help convert once-per-year dynamic land cover changes into fluxes
@@ -406,65 +422,127 @@ contains
          container = tracer_vars, &
          bounds = bounds, subgrid_level = subgrid_level_column)
 
-    call AllocateVar1d(var = this%qflx_sfc_dom_cons_col, name = 'qflx_sfc_dom_cons_col', &
+    call AllocateVar1d(var = this%qflx_sfc_dom_withd_col, name = 'qflx_sfc_dom_withd_col', &
          container = tracer_vars, &
          bounds = bounds, subgrid_level = subgrid_level_column)
 
-    call AllocateVar1d(var = this%qflx_gw_uncon_dom_cons_col, name = 'qflx_gw_uncon_dom_cons_col', &
+    call AllocateVar1d(var = this%qflx_gw_uncon_dom_withd_col, name = 'qflx_gw_uncon_dom_withd_col', &
          container = tracer_vars, &
          bounds = bounds, subgrid_level = subgrid_level_column)
 
-!     call AllocateVar1d(var = this%qflx_gw_con_dom_cons_col, name = 'qflx_gw_con_dom_cons_col', &
+!     call AllocateVar1d(var = this%qflx_gw_con_dom_withd_col, name = 'qflx_gw_con_dom_withd_col', &
 !            container = tracer_vars, &
 !            bounds = bounds, subgrid_level = subgrid_level_column)
 
-    call AllocateVar1d(var = this%qflx_sfc_liv_cons_col, name = 'qflx_sfc_liv_cons_col', &
+    call AllocateVar1d(var = this%qflx_sfc_liv_withd_col, name = 'qflx_sfc_liv_withd_col', &
            container = tracer_vars, &
            bounds = bounds, subgrid_level = subgrid_level_column)
 
-    call AllocateVar1d(var = this%qflx_gw_uncon_liv_cons_col, name = 'qflx_gw_uncon_liv_cons_col', &
+    call AllocateVar1d(var = this%qflx_gw_uncon_liv_withd_col, name = 'qflx_gw_uncon_liv_withd_col', &
            container = tracer_vars, &
            bounds = bounds, subgrid_level = subgrid_level_column)
 
-!     call AllocateVar1d(var = this%qflx_gw_con_liv_cons_col, name = 'qflx_gw_con_liv_cons_col', &
+!     call AllocateVar1d(var = this%qflx_gw_con_liv_withd_col, name = 'qflx_gw_con_liv_withd_col', &
 !            container = tracer_vars, &
 !            bounds = bounds, subgrid_level = subgrid_level_column)
 
-    call AllocateVar1d(var = this%qflx_sfc_elec_cons_col, name = 'qflx_sfc_elec_cons_col', &
+    call AllocateVar1d(var = this%qflx_sfc_elec_withd_col, name = 'qflx_sfc_elec_withd_col', &
            container = tracer_vars, &
            bounds = bounds, subgrid_level = subgrid_level_column)
 
-    call AllocateVar1d(var = this%qflx_gw_uncon_elec_cons_col, name = 'qflx_gw_uncon_elec_cons_col', &
+    call AllocateVar1d(var = this%qflx_gw_uncon_elec_withd_col, name = 'qflx_gw_uncon_elec_withd_col', &
            container = tracer_vars, &
            bounds = bounds, subgrid_level = subgrid_level_column)
 
-!     call AllocateVar1d(var = this%qflx_gw_con_elec_cons_col, name = 'qflx_gw_con_elec_cons_col', &
+!     call AllocateVar1d(var = this%qflx_gw_con_elec_withd_col, name = 'qflx_gw_con_elec_withd_col', &
 !            container = tracer_vars, &
 !            bounds = bounds, subgrid_level = subgrid_level_column)
 
-    call AllocateVar1d(var = this%qflx_sfc_mfc_cons_col, name = 'qflx_sfc_mfc_cons_col', &
+    call AllocateVar1d(var = this%qflx_sfc_mfc_withd_col, name = 'qflx_sfc_mfc_withd_col', &
            container = tracer_vars, &
            bounds = bounds, subgrid_level = subgrid_level_column)
 
-    call AllocateVar1d(var = this%qflx_gw_uncon_mfc_cons_col, name = 'qflx_gw_uncon_mfc_cons_col', &
+    call AllocateVar1d(var = this%qflx_gw_uncon_mfc_withd_col, name = 'qflx_gw_uncon_mfc_withd_col', &
            container = tracer_vars, &
            bounds = bounds, subgrid_level = subgrid_level_column)
 
-!     call AllocateVar1d(var = this%qflx_gw_con_mfc_cons_col, name = 'qflx_gw_con_mfc_cons_col', &
+!     call AllocateVar1d(var = this%qflx_gw_con_mfc_withd_col, name = 'qflx_gw_con_mfc_withd_col', &
 !            container = tracer_vars, &
 !            bounds = bounds, subgrid_level = subgrid_level_column)
 
-    call AllocateVar1d(var = this%qflx_sfc_min_cons_col, name = 'qflx_sfc_min_cons_col', &
+    call AllocateVar1d(var = this%qflx_sfc_min_withd_col, name = 'qflx_sfc_min_withd_col', &
            container = tracer_vars, &
            bounds = bounds, subgrid_level = subgrid_level_column)
 
-    call AllocateVar1d(var = this%qflx_gw_uncon_min_cons_col, name = 'qflx_gw_uncon_min_cons_col', &
+    call AllocateVar1d(var = this%qflx_gw_uncon_min_withd_col, name = 'qflx_gw_uncon_min_withd_col', &
            container = tracer_vars, &
            bounds = bounds, subgrid_level = subgrid_level_column)
 
-!     call AllocateVar1d(var = this%qflx_gw_con_min_cons_col, name = 'qflx_gw_con_min_cons_col', &
+!     call AllocateVar1d(var = this%qflx_gw_con_min_withd_col, name = 'qflx_gw_con_min_withd_col', &
 !            container = tracer_vars, &
 !            bounds = bounds, subgrid_level = subgrid_level_column)
+
+
+
+!     call AllocateVar1d(var = this%qflx_sfc_dom_cons_col, name = 'qflx_sfc_dom_cons_col', &
+!          container = tracer_vars, &
+!          bounds = bounds, subgrid_level = subgrid_level_column)
+
+!     call AllocateVar1d(var = this%qflx_gw_uncon_dom_cons_col, name = 'qflx_gw_uncon_dom_cons_col', &
+!          container = tracer_vars, &
+!          bounds = bounds, subgrid_level = subgrid_level_column)
+
+! !     call AllocateVar1d(var = this%qflx_gw_con_dom_cons_col, name = 'qflx_gw_con_dom_cons_col', &
+! !            container = tracer_vars, &
+! !            bounds = bounds, subgrid_level = subgrid_level_column)
+
+!     call AllocateVar1d(var = this%qflx_sfc_liv_cons_col, name = 'qflx_sfc_liv_cons_col', &
+!            container = tracer_vars, &
+!            bounds = bounds, subgrid_level = subgrid_level_column)
+
+!     call AllocateVar1d(var = this%qflx_gw_uncon_liv_cons_col, name = 'qflx_gw_uncon_liv_cons_col', &
+!            container = tracer_vars, &
+!            bounds = bounds, subgrid_level = subgrid_level_column)
+
+! !     call AllocateVar1d(var = this%qflx_gw_con_liv_cons_col, name = 'qflx_gw_con_liv_cons_col', &
+! !            container = tracer_vars, &
+! !            bounds = bounds, subgrid_level = subgrid_level_column)
+
+!     call AllocateVar1d(var = this%qflx_sfc_elec_cons_col, name = 'qflx_sfc_elec_cons_col', &
+!            container = tracer_vars, &
+!            bounds = bounds, subgrid_level = subgrid_level_column)
+
+!     call AllocateVar1d(var = this%qflx_gw_uncon_elec_cons_col, name = 'qflx_gw_uncon_elec_cons_col', &
+!            container = tracer_vars, &
+!            bounds = bounds, subgrid_level = subgrid_level_column)
+
+! !     call AllocateVar1d(var = this%qflx_gw_con_elec_cons_col, name = 'qflx_gw_con_elec_cons_col', &
+! !            container = tracer_vars, &
+! !            bounds = bounds, subgrid_level = subgrid_level_column)
+
+!     call AllocateVar1d(var = this%qflx_sfc_mfc_cons_col, name = 'qflx_sfc_mfc_cons_col', &
+!            container = tracer_vars, &
+!            bounds = bounds, subgrid_level = subgrid_level_column)
+
+!     call AllocateVar1d(var = this%qflx_gw_uncon_mfc_cons_col, name = 'qflx_gw_uncon_mfc_cons_col', &
+!            container = tracer_vars, &
+!            bounds = bounds, subgrid_level = subgrid_level_column)
+
+! !     call AllocateVar1d(var = this%qflx_gw_con_mfc_cons_col, name = 'qflx_gw_con_mfc_cons_col', &
+! !            container = tracer_vars, &
+! !            bounds = bounds, subgrid_level = subgrid_level_column)
+
+!     call AllocateVar1d(var = this%qflx_sfc_min_cons_col, name = 'qflx_sfc_min_cons_col', &
+!            container = tracer_vars, &
+!            bounds = bounds, subgrid_level = subgrid_level_column)
+
+!     call AllocateVar1d(var = this%qflx_gw_uncon_min_cons_col, name = 'qflx_gw_uncon_min_cons_col', &
+!            container = tracer_vars, &
+!            bounds = bounds, subgrid_level = subgrid_level_column)
+
+! !     call AllocateVar1d(var = this%qflx_gw_con_min_cons_col, name = 'qflx_gw_con_min_cons_col', &
+! !            container = tracer_vars, &
+! !            bounds = bounds, subgrid_level = subgrid_level_column)
     
     this%qflx_liq_dynbal_dribbler = annual_flux_dribbler_gridcell( &
          bounds = bounds, &
@@ -921,125 +999,247 @@ contains
          long_name=this%info%lname('water added through confined groundwater sectoral water usage'), &
          ptr_col=this%qflx_gw_con_sectorwater_col)
 
-    this%qflx_sfc_dom_cons_col(begc:endc) = spval
+    this%qflx_sfc_dom_withd_col(begc:endc) = spval
     call hist_addfld1d ( &
-         fname=this%info%fname('QDOM_CONS_FROM_SURFACE'), &
+         fname=this%info%fname('QDOM_WITHD_FROM_SURFACE'), &
          units='mm/s', &
          avgflag='A', &
          long_name=this%info%lname('water added to surface soil due to domestic water usage'), &
-         ptr_col=this%qflx_sfc_dom_cons_col, c2l_scale_type='urbanf')
+         ptr_col=this%qflx_sfc_dom_withd_col, c2l_scale_type='urbanf')
 
-    this%qflx_gw_uncon_dom_cons_col(begc:endc) = spval
+    this%qflx_gw_uncon_dom_withd_col(begc:endc) = spval
     call hist_addfld1d ( &
-         fname=this%info%fname('QDOM_CONS_FROM_GW_UNCONFINED'), &
+         fname=this%info%fname('QDOM_withd_FROM_GW_UNCONFINED'), &
          units='mm/s', &
          avgflag='A', &
          long_name=this%info%lname('water added through unconfined groundwater domestic water usage'), &
-         ptr_col=this%qflx_gw_uncon_dom_cons_col)
+         ptr_col=this%qflx_gw_uncon_dom_withd_col)
 
-!     this%qflx_gw_con_dom_cons_col(begc:endc) = spval
+!     this%qflx_gw_con_dom_withd_col(begc:endc) = spval
 !      call hist_addfld1d ( &
-!            fname=this%info%fname('QDOM_CONS_FROM_GW_CONFINED'), &
+!            fname=this%info%fname('QDOM_withd_FROM_GW_CONFINED'), &
 !            units='mm/s', &
 !            avgflag='A', &
 !            long_name=this%info%lname('water added through confined groundwater domestic water usage'), &
-!            ptr_col=this%qflx_gw_con_dom_cons_col)
+!            ptr_col=this%qflx_gw_con_dom_withd_col)
 
-    this%qflx_sfc_liv_cons_col(begc:endc) = spval
+    this%qflx_sfc_liv_withd_col(begc:endc) = spval
     call hist_addfld1d ( &
-         fname=this%info%fname('QLIV_CONS_FROM_SURFACE'), &
+         fname=this%info%fname('QLIV_withd_FROM_SURFACE'), &
          units='mm/s', &
          avgflag='A', &
          long_name=this%info%lname('water added to surface soil due to livestock water usage'), &
-         ptr_col=this%qflx_sfc_liv_cons_col, c2l_scale_type='urbanf')
+         ptr_col=this%qflx_sfc_liv_withd_col, c2l_scale_type='urbanf')
 
-    this%qflx_gw_uncon_liv_cons_col(begc:endc) = spval
+    this%qflx_gw_uncon_liv_withd_col(begc:endc) = spval
     call hist_addfld1d ( &
-         fname=this%info%fname('QLIV_CONS_FROM_GW_UNCONFINED'), &
+         fname=this%info%fname('QLIV_withd_FROM_GW_UNCONFINED'), &
          units='mm/s', &
          avgflag='A', &
          long_name=this%info%lname('water added through unconfined groundwater livestock water usage'), &
-         ptr_col=this%qflx_gw_uncon_liv_cons_col)
+         ptr_col=this%qflx_gw_uncon_liv_withd_col)
 
-!     this%qflx_gw_con_liv_cons_col(begc:endc) = spval
+!     this%qflx_gw_con_liv_withd_col(begc:endc) = spval
 !      call hist_addfld1d ( &
-!            fname=this%info%fname('QLIV_CONS_FROM_GW_CONFINED'), &
+!            fname=this%info%fname('QLIV_withd_FROM_GW_CONFINED'), &
 !            units='mm/s', &
 !            avgflag='A', &
 !            long_name=this%info%lname('water added through confined groundwater livestock water usage'), &
-!            ptr_col=this%qflx_gw_con_liv_cons_col)
+!            ptr_col=this%qflx_gw_con_liv_withd_col)
 
-    this%qflx_sfc_elec_cons_col(begc:endc) = spval
+    this%qflx_sfc_elec_withd_col(begc:endc) = spval
     call hist_addfld1d ( &
-         fname=this%info%fname('QELEC_CONS_FROM_SURFACE'), &
+         fname=this%info%fname('QELEC_withd_FROM_SURFACE'), &
          units='mm/s', &
          avgflag='A', &
          long_name=this%info%lname('water added to surface soil due to electricity water usage'), &
-         ptr_col=this%qflx_sfc_elec_cons_col, c2l_scale_type='urbanf')
+         ptr_col=this%qflx_sfc_elec_withd_col, c2l_scale_type='urbanf')
 
-    this%qflx_gw_uncon_elec_cons_col(begc:endc) = spval
+    this%qflx_gw_uncon_elec_withd_col(begc:endc) = spval
     call hist_addfld1d ( &
-         fname=this%info%fname('QELEC_CONS_FROM_GW_UNCONFINED'), &
+         fname=this%info%fname('QELEC_withd_FROM_GW_UNCONFINED'), &
          units='mm/s', &
          avgflag='A', &
          long_name=this%info%lname('water added through unconfined groundwater electricity water usage'), &
-         ptr_col=this%qflx_gw_uncon_elec_cons_col)
+         ptr_col=this%qflx_gw_uncon_elec_withd_col)
 
-!     this%qflx_gw_con_elec_cons_col(begc:endc) = spval
+!     this%qflx_gw_con_elec_withd_col(begc:endc) = spval
 !      call hist_addfld1d ( &
-!            fname=this%info%fname('QELEC_CONS_FROM_GW_CONFINED'), &
+!            fname=this%info%fname('QELEC_withd_FROM_GW_CONFINED'), &
 !            units='mm/s', &
 !            avgflag='A', &
 !            long_name=this%info%lname('water added through confined groundwater electricity water usage'), &
-!            ptr_col=this%qflx_gw_con_elec_cons_col)
+!            ptr_col=this%qflx_gw_con_elec_withd_col)
 
-    this%qflx_sfc_mfc_cons_col(begc:endc) = spval
+    this%qflx_sfc_mfc_withd_col(begc:endc) = spval
     call hist_addfld1d ( &
-         fname=this%info%fname('QMFC_CONS_FROM_SURFACE'), &
+         fname=this%info%fname('QMFC_withd_FROM_SURFACE'), &
          units='mm/s', &
          avgflag='A', &
          long_name=this%info%lname('water added to surface soil due to manufacturing water usage'), &
-         ptr_col=this%qflx_sfc_mfc_cons_col, c2l_scale_type='urbanf')
+         ptr_col=this%qflx_sfc_mfc_withd_col, c2l_scale_type='urbanf')
 
-    this%qflx_gw_uncon_mfc_cons_col(begc:endc) = spval
+    this%qflx_gw_uncon_mfc_withd_col(begc:endc) = spval
     call hist_addfld1d ( &
-         fname=this%info%fname('QMFC_CONS_FROM_GW_UNCONFINED'), &
+         fname=this%info%fname('QMFC_withd_FROM_GW_UNCONFINED'), &
          units='mm/s', &
          avgflag='A', &
          long_name=this%info%lname('water added through unconfined groundwater manufacturing water usage'), &
-         ptr_col=this%qflx_gw_uncon_mfc_cons_col)
+         ptr_col=this%qflx_gw_uncon_mfc_withd_col)
 
-!     this%qflx_gw_con_mfc_cons_col(begc:endc) = spval
+!     this%qflx_gw_con_mfc_withd_col(begc:endc) = spval
 !      call hist_addfld1d ( &
-!            fname=this%info%fname('QMFC_CONS_FROM_GW_CONFINED'), &
+!            fname=this%info%fname('QMFC_withd_FROM_GW_CONFINED'), &
 !            units='mm/s', &
 !            avgflag='A', &
 !            long_name=this%info%lname('water added through confined groundwater manufacturing water usage'), &
-!            ptr_col=this%qflx_gw_con_mfc_cons_col)
+!            ptr_col=this%qflx_gw_con_mfc_withd_col)
 
-    this%qflx_sfc_min_cons_col(begc:endc) = spval
+    this%qflx_sfc_min_withd_col(begc:endc) = spval
     call hist_addfld1d ( &
-         fname=this%info%fname('QMIN_CONS_FROM_SURFACE'), &
+         fname=this%info%fname('QMIN_withd_FROM_SURFACE'), &
          units='mm/s', &
          avgflag='A', &
          long_name=this%info%lname('water added to surface soil due to mining water usage'), &
-         ptr_col=this%qflx_sfc_min_cons_col, c2l_scale_type='urbanf')
+         ptr_col=this%qflx_sfc_min_withd_col, c2l_scale_type='urbanf')
 
-    this%qflx_gw_uncon_min_cons_col(begc:endc) = spval
+    this%qflx_gw_uncon_min_withd_col(begc:endc) = spval
     call hist_addfld1d ( &
-         fname=this%info%fname('QMIN_CONS_FROM_GW_UNCONFINED'), &
+         fname=this%info%fname('QMIN_withd_FROM_GW_UNCONFINED'), &
          units='mm/s', &
          avgflag='A', &
          long_name=this%info%lname('water added through unconfined groundwater mining water usage'), &
-         ptr_col=this%qflx_gw_uncon_min_cons_col)
+         ptr_col=this%qflx_gw_uncon_min_withd_col)
 
-!     this%qflx_gw_con_min_cons_col(begc:endc) = spval
+!     this%qflx_gw_con_min_withd_col(begc:endc) = spval
 !      call hist_addfld1d ( &
-!            fname=this%info%fname('QMIN_CONS_FROM_GW_CONFINED'), &
+!            fname=this%info%fname('QMIN_withd_FROM_GW_CONFINED'), &
 !            units='mm/s', &
 !            avgflag='A', &
 !            long_name=this%info%lname('water added through confined groundwater mining water usage'), &
-!            ptr_col=this%qflx_gw_con_min_cons_col)
+!            ptr_col=this%qflx_gw_con_min_withd_col)
+
+
+
+!     this%qflx_sfc_dom_cons_col(begc:endc) = spval
+!     call hist_addfld1d ( &
+!          fname=this%info%fname('QDOM_CONS_FROM_SURFACE'), &
+!          units='mm/s', &
+!          avgflag='A', &
+!          long_name=this%info%lname('water added to surface soil due to domestic water usage'), &
+!          ptr_col=this%qflx_sfc_dom_cons_col, c2l_scale_type='urbanf')
+
+!     this%qflx_gw_uncon_dom_cons_col(begc:endc) = spval
+!     call hist_addfld1d ( &
+!          fname=this%info%fname('QDOM_CONS_FROM_GW_UNCONFINED'), &
+!          units='mm/s', &
+!          avgflag='A', &
+!          long_name=this%info%lname('water added through unconfined groundwater domestic water usage'), &
+!          ptr_col=this%qflx_gw_uncon_dom_cons_col)
+
+! !     this%qflx_gw_con_dom_cons_col(begc:endc) = spval
+! !      call hist_addfld1d ( &
+! !            fname=this%info%fname('QDOM_CONS_FROM_GW_CONFINED'), &
+! !            units='mm/s', &
+! !            avgflag='A', &
+! !            long_name=this%info%lname('water added through confined groundwater domestic water usage'), &
+! !            ptr_col=this%qflx_gw_con_dom_cons_col)
+
+!     this%qflx_sfc_liv_cons_col(begc:endc) = spval
+!     call hist_addfld1d ( &
+!          fname=this%info%fname('QLIV_CONS_FROM_SURFACE'), &
+!          units='mm/s', &
+!          avgflag='A', &
+!          long_name=this%info%lname('water added to surface soil due to livestock water usage'), &
+!          ptr_col=this%qflx_sfc_liv_cons_col, c2l_scale_type='urbanf')
+
+!     this%qflx_gw_uncon_liv_cons_col(begc:endc) = spval
+!     call hist_addfld1d ( &
+!          fname=this%info%fname('QLIV_CONS_FROM_GW_UNCONFINED'), &
+!          units='mm/s', &
+!          avgflag='A', &
+!          long_name=this%info%lname('water added through unconfined groundwater livestock water usage'), &
+!          ptr_col=this%qflx_gw_uncon_liv_cons_col)
+
+! !     this%qflx_gw_con_liv_cons_col(begc:endc) = spval
+! !      call hist_addfld1d ( &
+! !            fname=this%info%fname('QLIV_CONS_FROM_GW_CONFINED'), &
+! !            units='mm/s', &
+! !            avgflag='A', &
+! !            long_name=this%info%lname('water added through confined groundwater livestock water usage'), &
+! !            ptr_col=this%qflx_gw_con_liv_cons_col)
+
+!     this%qflx_sfc_elec_cons_col(begc:endc) = spval
+!     call hist_addfld1d ( &
+!          fname=this%info%fname('QELEC_CONS_FROM_SURFACE'), &
+!          units='mm/s', &
+!          avgflag='A', &
+!          long_name=this%info%lname('water added to surface soil due to electricity water usage'), &
+!          ptr_col=this%qflx_sfc_elec_cons_col, c2l_scale_type='urbanf')
+
+!     this%qflx_gw_uncon_elec_cons_col(begc:endc) = spval
+!     call hist_addfld1d ( &
+!          fname=this%info%fname('QELEC_CONS_FROM_GW_UNCONFINED'), &
+!          units='mm/s', &
+!          avgflag='A', &
+!          long_name=this%info%lname('water added through unconfined groundwater electricity water usage'), &
+!          ptr_col=this%qflx_gw_uncon_elec_cons_col)
+
+! !     this%qflx_gw_con_elec_cons_col(begc:endc) = spval
+! !      call hist_addfld1d ( &
+! !            fname=this%info%fname('QELEC_CONS_FROM_GW_CONFINED'), &
+! !            units='mm/s', &
+! !            avgflag='A', &
+! !            long_name=this%info%lname('water added through confined groundwater electricity water usage'), &
+! !            ptr_col=this%qflx_gw_con_elec_cons_col)
+
+!     this%qflx_sfc_mfc_cons_col(begc:endc) = spval
+!     call hist_addfld1d ( &
+!          fname=this%info%fname('QMFC_CONS_FROM_SURFACE'), &
+!          units='mm/s', &
+!          avgflag='A', &
+!          long_name=this%info%lname('water added to surface soil due to manufacturing water usage'), &
+!          ptr_col=this%qflx_sfc_mfc_cons_col, c2l_scale_type='urbanf')
+
+!     this%qflx_gw_uncon_mfc_cons_col(begc:endc) = spval
+!     call hist_addfld1d ( &
+!          fname=this%info%fname('QMFC_CONS_FROM_GW_UNCONFINED'), &
+!          units='mm/s', &
+!          avgflag='A', &
+!          long_name=this%info%lname('water added through unconfined groundwater manufacturing water usage'), &
+!          ptr_col=this%qflx_gw_uncon_mfc_cons_col)
+
+! !     this%qflx_gw_con_mfc_cons_col(begc:endc) = spval
+! !      call hist_addfld1d ( &
+! !            fname=this%info%fname('QMFC_CONS_FROM_GW_CONFINED'), &
+! !            units='mm/s', &
+! !            avgflag='A', &
+! !            long_name=this%info%lname('water added through confined groundwater manufacturing water usage'), &
+! !            ptr_col=this%qflx_gw_con_mfc_cons_col)
+
+!     this%qflx_sfc_min_cons_col(begc:endc) = spval
+!     call hist_addfld1d ( &
+!          fname=this%info%fname('QMIN_CONS_FROM_SURFACE'), &
+!          units='mm/s', &
+!          avgflag='A', &
+!          long_name=this%info%lname('water added to surface soil due to mining water usage'), &
+!          ptr_col=this%qflx_sfc_min_cons_col, c2l_scale_type='urbanf')
+
+!     this%qflx_gw_uncon_min_cons_col(begc:endc) = spval
+!     call hist_addfld1d ( &
+!          fname=this%info%fname('QMIN_CONS_FROM_GW_UNCONFINED'), &
+!          units='mm/s', &
+!          avgflag='A', &
+!          long_name=this%info%lname('water added through unconfined groundwater mining water usage'), &
+!          ptr_col=this%qflx_gw_uncon_min_cons_col)
+
+! !     this%qflx_gw_con_min_cons_col(begc:endc) = spval
+! !      call hist_addfld1d ( &
+! !            fname=this%info%fname('QMIN_CONS_FROM_GW_CONFINED'), &
+! !            units='mm/s', &
+! !            avgflag='A', &
+! !            long_name=this%info%lname('water added through confined groundwater mining water usage'), &
+! !            ptr_col=this%qflx_gw_con_min_cons_col)
 
   end subroutine InitHistory
   
@@ -1080,21 +1280,37 @@ contains
     this%qflx_gw_uncon_sectorwater_lyr_col(bounds%begc:bounds%endc,:) = 0.0_r8
     this%qflx_gw_con_sectorwater_col (bounds%begc:bounds%endc)      = 0.0_r8
 
-    this%qflx_sfc_dom_cons_col (bounds%begc:bounds%endc)       = 0.0_r8
-    this%qflx_gw_uncon_dom_cons_col (bounds%begc:bounds%endc)    = 0.0_r8
-!     this%qflx_gw_con_dom_cons_col (bounds%begc:bounds%endc)      = 0.0_r8
-    this%qflx_sfc_liv_cons_col (bounds%begc:bounds%endc)       = 0.0_r8
-    this%qflx_gw_uncon_liv_cons_col (bounds%begc:bounds%endc)    = 0.0_r8
-!     this%qflx_gw_con_liv_cons_col (bounds%begc:bounds%endc)      = 0.0_r8
-    this%qflx_sfc_elec_cons_col (bounds%begc:bounds%endc)       = 0.0_r8
-    this%qflx_gw_uncon_elec_cons_col (bounds%begc:bounds%endc)    = 0.0_r8
-!     this%qflx_gw_con_elec_cons_col (bounds%begc:bounds%endc)      = 0.0_r8
-    this%qflx_sfc_mfc_cons_col (bounds%begc:bounds%endc)       = 0.0_r8
-    this%qflx_gw_uncon_mfc_cons_col (bounds%begc:bounds%endc)    = 0.0_r8
-!     this%qflx_gw_con_mfc_cons_col (bounds%begc:bounds%endc)      = 0.0_r8
-    this%qflx_sfc_min_cons_col (bounds%begc:bounds%endc)       = 0.0_r8
-    this%qflx_gw_uncon_min_cons_col (bounds%begc:bounds%endc)    = 0.0_r8
-!     this%qflx_gw_con_min_cons_col (bounds%begc:bounds%endc)      = 0.0_r8
+    this%qflx_sfc_dom_withd_col (bounds%begc:bounds%endc)       = 0.0_r8
+    this%qflx_gw_uncon_dom_withd_col (bounds%begc:bounds%endc)    = 0.0_r8
+!     this%qflx_gw_con_dom_withd_col (bounds%begc:bounds%endc)      = 0.0_r8
+    this%qflx_sfc_liv_withd_col (bounds%begc:bounds%endc)       = 0.0_r8
+    this%qflx_gw_uncon_liv_withd_col (bounds%begc:bounds%endc)    = 0.0_r8
+!     this%qflx_gw_con_liv_withd_col (bounds%begc:bounds%endc)      = 0.0_r8
+    this%qflx_sfc_elec_withd_col (bounds%begc:bounds%endc)       = 0.0_r8
+    this%qflx_gw_uncon_elec_withd_col (bounds%begc:bounds%endc)    = 0.0_r8
+!     this%qflx_gw_con_elec_withd_col (bounds%begc:bounds%endc)      = 0.0_r8
+    this%qflx_sfc_mfc_withd_col (bounds%begc:bounds%endc)       = 0.0_r8
+    this%qflx_gw_uncon_mfc_withd_col (bounds%begc:bounds%endc)    = 0.0_r8
+!     this%qflx_gw_con_mfc_withd_col (bounds%begc:bounds%endc)      = 0.0_r8
+    this%qflx_sfc_min_withd_col (bounds%begc:bounds%endc)       = 0.0_r8
+    this%qflx_gw_uncon_min_withd_col (bounds%begc:bounds%endc)    = 0.0_r8
+!     this%qflx_gw_con_min_withd_col (bounds%begc:bounds%endc)      = 0.0_r8
+
+!     this%qflx_sfc_dom_cons_col (bounds%begc:bounds%endc)       = 0.0_r8
+!     this%qflx_gw_uncon_dom_cons_col (bounds%begc:bounds%endc)    = 0.0_r8
+! !     this%qflx_gw_con_dom_cons_col (bounds%begc:bounds%endc)      = 0.0_r8
+!     this%qflx_sfc_liv_cons_col (bounds%begc:bounds%endc)       = 0.0_r8
+!     this%qflx_gw_uncon_liv_cons_col (bounds%begc:bounds%endc)    = 0.0_r8
+! !     this%qflx_gw_con_liv_cons_col (bounds%begc:bounds%endc)      = 0.0_r8
+!     this%qflx_sfc_elec_cons_col (bounds%begc:bounds%endc)       = 0.0_r8
+!     this%qflx_gw_uncon_elec_cons_col (bounds%begc:bounds%endc)    = 0.0_r8
+! !     this%qflx_gw_con_elec_cons_col (bounds%begc:bounds%endc)      = 0.0_r8
+!     this%qflx_sfc_mfc_cons_col (bounds%begc:bounds%endc)       = 0.0_r8
+!     this%qflx_gw_uncon_mfc_cons_col (bounds%begc:bounds%endc)    = 0.0_r8
+! !     this%qflx_gw_con_mfc_cons_col (bounds%begc:bounds%endc)      = 0.0_r8
+!     this%qflx_sfc_min_cons_col (bounds%begc:bounds%endc)       = 0.0_r8
+!     this%qflx_gw_uncon_min_cons_col (bounds%begc:bounds%endc)    = 0.0_r8
+! !     this%qflx_gw_con_min_cons_col (bounds%begc:bounds%endc)      = 0.0_r8
 
     this%qflx_liqevap_from_top_layer_col(bounds%begc:bounds%endc) = 0.0_r8
     this%qflx_liqdew_to_top_layer_col(bounds%begc:bounds%endc)    = 0.0_r8

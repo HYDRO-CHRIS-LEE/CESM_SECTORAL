@@ -2609,7 +2609,8 @@ contains
      integer  :: fc, c, j
      real(r8) :: dtime        ! land model time step (sec)
      integer  :: jwt(bounds%begc:bounds%endc)            ! index of the soil layer right above the water table (-)
-     real(r8) :: sector_cons_remaining  ! mm H2O
+     !real(r8) :: sector_cons_remaining  ! mm H2O
+     real(r8) :: sector_withd_remaining  ! mm H2O
      real(r8) :: s_y
      real(r8) :: available_water_layer   ! mm H2O
      real(r8) :: sector_layer             ! mm H2O
@@ -2649,9 +2650,12 @@ contains
      do fc = 1, num_soilc
         c = filter_soilc(fc)
 
-        sector_cons_remaining = (qflx_gw_uncon_sectorwater(c))*dtime
+        !sector_cons_remaining = (qflx_gw_uncon_sectorwater(c))*dtime
+        sector_withd_remaining = (qflx_gw_uncon_sectorwater(c))*dtime
+
         ! should never be negative... but include for completeness
-        if(sector_cons_remaining < 0.) then
+        !if(sector_cons_remaining < 0.) then
+        if(sector_withd_remaining < 0.) then
              
            call endrun(subgrid_index=c, subgrid_level=subgrid_level_column, &
               msg="negative groundwater sectorwater consumption! "//errmsg(sourcefile, __LINE__))
@@ -2676,18 +2680,24 @@ contains
                  available_water_layer=max(0._r8,(s_y*(zi(c,j) - zi(c,j-1))*1.e3))
               endif
               
-              sector_layer = min(sector_cons_remaining, available_water_layer)
+              !sector_layer = min(sector_cons_remaining, available_water_layer)
+              sector_layer = min(sector_withd_remaining, available_water_layer)
               qflx_gw_uncon_sectorwater_lyr(c,j) = sector_layer / dtime
 
-              sector_cons_remaining = sector_cons_remaining - sector_layer
+              !sector_cons_remaining = sector_cons_remaining - sector_layer
+              sector_withd_remaining = sector_withd_remaining - sector_layer
 
-              if (sector_cons_remaining <= 0.) then 
+
+              !if (sector_cons_remaining <= 0.) then 
+              if (sector_withd_remaining <= 0.) then 
                  exit
               endif
            end do
 
-           if (sector_cons_remaining > 0._r8) then
-              write(iulog,*) "sector_cons_remaining2", sector_cons_remaining
+           !if (sector_cons_remaining > 0._r8) then
+           if (sector_withd_remaining > 0._r8) then
+              !write(iulog,*) "sector_cons_remaining2", sector_cons_remaining
+              write(iulog,*) "sector_withd_remaining2", sector_withd_remaining
               call endrun(subgrid_index=c, subgrid_level=subgrid_level_column, &
               msg="Unconfined groundwater sectorwater has overflowed"//errmsg(sourcefile, __LINE__))
            else
