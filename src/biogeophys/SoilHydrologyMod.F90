@@ -1826,6 +1826,7 @@ contains
      real(r8) :: sat_lev
      real(r8) :: s1,s2,m,b   ! temporary variables used to interpolate theta
      integer  :: sat_flag
+     real(r8) :: s_y
      
      !-----------------------------------------------------------------------
 
@@ -1837,7 +1838,10 @@ contains
           h2osoi_liq         =>    waterstatebulk_inst%h2osoi_liq_col        , & ! Output: [real(r8) (:,:) ]  liquid water (kg/m2)                            
           h2osoi_ice         =>    waterstatebulk_inst%h2osoi_ice_col        , & ! Output: [real(r8) (:,:) ]  ice lens (kg/m2)                                
           h2osoi_vol         =>    waterstatebulk_inst%h2osoi_vol_col        , & ! Input:  [real(r8) (:,:) ]  volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
+          bsw                =>    soilstate_inst%bsw_col                , & ! Input:  [real(r8) (:,:) ] Clapp and Hornberger "b" 
+          sucsat             =>    soilstate_inst%sucsat_col             , & ! Input:  [real(r8) (:,:) ] minimum soil suction (mm)
           watsat             =>    soilstate_inst%watsat_col             , & ! Input:  [real(r8) (:,:) ] volumetric soil water at saturation (porosity)  
+          sy                 =>    soilhydrology_inst%sy_col             , & ! Input:  [real(r8) (:,:) ] specific yield (m3/m3)
           zwt                =>    soilhydrology_inst%zwt_col              & ! Output: [real(r8) (:)   ]  water table depth (m)                             
           )
 
@@ -1886,6 +1890,13 @@ contains
           else
              zwt(c)=zi(c,nbedrock(c))
           endif
+
+          ! Calculate specific yield for each layer
+          do j=1, nbedrock(c)
+            ! use analytical solution for specific yield
+            s_y = watsat(c,j) * (1. - (1.+1.e3*zwt(c)/sucsat(c,j))**(-1./bsw(c,j)))
+            sy(c,j) = max(s_y, params_inst%aq_sp_yield_min)
+          end do
        end do
 
      end associate
@@ -1954,6 +1965,10 @@ contains
      real(r8) :: frac                     ! temporary variable for ARNO subsurface runoff calculation
      real(r8) :: rel_moist                ! relative moisture, temporary variable
      real(r8) :: wtsub_vic                ! summation of hk*dzmm for layers in the third VIC layer
+     real(r8) :: zwt_prev(bounds%begc:bounds%endc)       ! previous water table depth (m)
+     real(r8) :: dwtdt                                   ! change in water table depth over time (m/s)
+     real(r8) :: gw_recharge                             ! groundwater recharge (mm/s)
+     real(r8) :: dwtdt_layer                             ! change in water table depth for a specific layer (m/s)
      integer :: g
      !-----------------------------------------------------------------------
 
@@ -1986,6 +2001,8 @@ contains
           qcharge            =>    soilhydrology_inst%qcharge_col        , & ! Input:  [real(r8) (:)   ] aquifer recharge rate (mm/s)                      
           origflag           =>    soilhydrology_inst%origflag           , & ! Input:  logical
           h2osfcflag         =>    soilhydrology_inst%h2osfcflag         , & ! Input:  integer
+          zwt_prev           =>    soilhydrology_inst%zwt_prev_col        , & ! Input:  [real(r8) (:)   ] previous water table depth (m)
+          sy                 =>    soilhydrology_inst%sy_col              , & ! Input:  [real(r8) (:,:) ] specific yield (-)
           
           qflx_snwcp_liq     =>    waterfluxbulk_inst%qflx_snwcp_liq_col     , & ! Output: [real(r8) (:)   ] excess rainfall due to snow capping (mm H2O /s) [+]
           qflx_ice_runoff_xs =>    waterfluxbulk_inst%qflx_ice_runoff_xs_col , & ! Output: [real(r8) (:)   ] solid runoff from excess ice in soil (mm H2O /s) [+]
@@ -2208,6 +2225,42 @@ contains
              qflx_qrgwl(c) = qflx_snwcp_liq(c)
           end if
        end do
+
+       ! Calculate groundwater recharge
+       do fc = 1, num_hydrologyc
+          c = filter_hydrologyc(fc)
+         
+          ! Calculate change in water table depth
+          dwtdt = (zwt(c) - zwt_prev(c)) / dtime
+         
+          ! Initialize groundwater recharge
+          gw_recharge = 0._r8
+         
+          ! Calculate recharge layer by layer
+          do j = 1, nbedrock(c)
+             if ((zwt(c) <= zi(c,j) .and. zwt_prev(c) > zi(c,j)) .or. &
+                (zwt(c) > zi(c,j) .and. zwt_prev(c) <= zi(c,j)) .or. &
+                (zwt(c) > zi(c,j) .and. zwt_prev(c) > zi(c,j) .and. j == nbedrock(c))) then
+               
+                ! Calculate the portion of water table change in this layer
+                if (j < nbedrock(c)) then
+                   dwtdt_layer = (min(zi(c,j), max(zwt(c), zwt_prev(c))) - &
+                                 max(zi(c,j-1), min(zwt(c), zwt_prev(c)))) / dtime
+                else
+                   dwtdt_layer = dwtdt
+                end if
+               
+                ! Add to groundwater recharge
+                gw_recharge = gw_recharge + sy(c,j) * dwtdt_layer * 1000._r8  ! Convert m/s to mm/s
+             end if
+          end do
+         
+          ! Subtract subsurface discharge (qflx_drain) and store in qcharge
+          qcharge(c) = gw_recharge - qflx_drain(c)
+       end do
+
+       ! Store current water table depth for next time step
+       zwt_prev(:) = zwt(:)
 
      end associate
 

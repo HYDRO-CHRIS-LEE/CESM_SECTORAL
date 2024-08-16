@@ -25,9 +25,13 @@ Module SoilHydrologyType
      ! NON-VIC
      real(r8), pointer :: frost_table_col   (:)     ! col frost table depth                    
      real(r8), pointer :: zwt_col           (:)     ! col water table depth
+     real(r8), pointer :: zwt_prev_col      (:)     ! col previous water table depth
      real(r8), pointer :: zwts_col          (:)     ! col water table depth, the shallower of the two water depths
      real(r8), pointer :: zwt_perched_col   (:)     ! col perched water table depth
+
      real(r8), pointer :: qcharge_col       (:)     ! col aquifer recharge rate (mm/s) 
+     real(r8), pointer :: sy_col            (:,:)   ! col specific yield (-)
+
      real(r8), pointer :: fracice_col       (:,:)   ! col fractional impermeability (-)
      real(r8), pointer :: icefrac_col       (:,:)   ! col fraction of ice       
      real(r8), pointer :: h2osfc_thresh_col (:)     ! col level at which h2osfc "percolates"   (time constant)
@@ -117,10 +121,13 @@ contains
     allocate(this%num_substeps_col   (begc:endc))                ; this%num_substeps_col   (:)     = nan
     allocate(this%frost_table_col   (begc:endc))                 ; this%frost_table_col   (:)     = nan
     allocate(this%zwt_col           (begc:endc))                 ; this%zwt_col           (:)     = nan
+    allocate(this%zwt_prev_col      (begc:endc))                 ; this%zwt_prev_col      (:)     = nan
     allocate(this%zwt_perched_col   (begc:endc))                 ; this%zwt_perched_col   (:)     = nan
     allocate(this%zwts_col          (begc:endc))                 ; this%zwts_col          (:)     = nan
 
     allocate(this%qcharge_col       (begc:endc))                 ; this%qcharge_col       (:)     = nan
+    allocate(this%sy_col            (begc:endc,nlevsoi))         ; this%sy_col            (:,:)   = nan
+
     allocate(this%fracice_col       (begc:endc,nlevgrnd))        ; this%fracice_col       (:,:)   = nan
     allocate(this%icefrac_col       (begc:endc,nlevgrnd))        ; this%icefrac_col       (:,:)   = nan
     allocate(this%h2osfc_thresh_col (begc:endc))                 ; this%h2osfc_thresh_col (:)     = nan
@@ -153,7 +160,7 @@ contains
   subroutine InitHistory(this, bounds, use_aquifer_layer)
     !
     ! !USES:
-    use histFileMod    , only : hist_addfld1d
+    use histFileMod    , only : hist_addfld1d, hist_addfld2d
     !
     ! !ARGUMENTS:
     class(soilhydrology_type) :: this
@@ -173,7 +180,17 @@ contains
        call hist_addfld1d (fname='QCHARGE',  units='mm/s',  &
             avgflag='A', long_name='aquifer recharge rate (natural vegetated and crop landunits only)', &
             ptr_col=this%qcharge_col, l2g_scale_type='veg')
+    else
+      this%qcharge_col(begc:endc) = spval
+      call hist_addfld1d (fname='QCHARGE_NEW',  units='mm/s',  &
+           avgflag='A', long_name='aquifer recharge rate (natural vegetated and crop landunits only)', &
+           ptr_col=this%qcharge_col, l2g_scale_type='veg')
     end if
+
+    this%sy_col(begc:endc,:) = spval
+    call hist_addfld2d (fname='SY',  units='unitless',  &
+         avgflag='A', long_name='specific yield', &
+         ptr_col=this%sy_col, type2d='levsoi', l2g_scale_type='veg')
 
     this%num_substeps_col(begc:endc) = spval
     call hist_addfld1d (fname='NSUBSTEPS',  units='unitless',  &
@@ -242,11 +259,17 @@ contains
                    ! Note that the following hard-coded constants (on the next line)
                    ! seem implicitly related to the initial value of wa_col
                    this%zwt_col(c) = (25._r8 + col%zi(c,nlevsoi)) - waterstatebulk_inst%wa_col(c)/0.2_r8 /1000._r8  ! One meter below soil column
+                   ! Initialize zwt_prev_col to the same value as zwt_col
+                   this%zwt_prev_col(c) = this%zwt_col(c)
                 else
                    this%zwt_col(c) = col%zi(c,col%nbedrock(c))
+                   ! Initialize zwt_prev_col to the same value as zwt_col
+                   this%zwt_prev_col(c) = this%zwt_col(c)
                 end if
              else
                 this%zwt_col(c) = spval
+                ! Initialize zwt_prev_col to the same value as zwt_col
+                this%zwt_prev_col(c) = this%zwt_col(c)
              end if
              ! initialize frost_table, zwt_perched
              this%zwt_perched_col(c) = spval
@@ -264,8 +287,12 @@ contains
                 ! Note that the following hard-coded constants (on the next line) seem
                 ! implicitly related to the initial value of wa_col
                 this%zwt_col(c) = (25._r8 + col%zi(c,nlevsoi)) - waterstatebulk_inst%wa_col(c)/0.2_r8 /1000._r8
+                ! Initialize zwt_prev_col to the same value as zwt_col
+                this%zwt_prev_col(c) = this%zwt_col(c)
              else
                 this%zwt_col(c) = col%zi(c,col%nbedrock(c))
+                ! Initialize zwt_prev_col to the same value as zwt_col
+                this%zwt_prev_col(c) = this%zwt_col(c)
              end if
     
              ! initialize frost_table, zwt_perched to bottom of soil column
@@ -307,6 +334,11 @@ contains
          dim1name='column', &
          long_name='water table depth', units='m', &
          interpinic_flag='interp', readvar=readvar, data=this%zwt_col)
+
+    call restartvar(ncid=ncid, flag=flag, varname='ZWT_PREV', xtype=ncd_double,  & 
+         dim1name='column', &
+         long_name='previous water table depth', units='m', &
+         interpinic_flag='interp', readvar=readvar, data=this%zwt_prev_col)
 
     call restartvar(ncid=ncid, flag=flag, varname='ZWT_PERCH', xtype=ncd_double,  & 
          dim1name='column', &
