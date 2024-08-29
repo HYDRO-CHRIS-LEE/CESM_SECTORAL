@@ -2244,19 +2244,20 @@ contains
                
                 ! Calculate the portion of water table change in this layer
                 if (j < nbedrock(c)) then
-                   dwtdt_layer = (min(zi(c,j), max(zwt(c), zwt_prev(c))) - &
-                                 max(zi(c,j-1), min(zwt(c), zwt_prev(c)))) / dtime
+                   dwtdt_layer = dwtdt
+                  !  dwtdt_layer = (min(zi(c,j), max(zwt(c), zwt_prev(c))) - &
+                  !                max(zi(c,j-1), min(zwt(c), zwt_prev(c)))) / dtime
                 else
                    dwtdt_layer = dwtdt
                 end if
                
                 ! Add to groundwater recharge
-                gw_recharge = gw_recharge + sy(c,j) * dwtdt_layer * 1000._r8  ! Convert m/s to mm/s
+                gw_recharge = gw_recharge - sy(c,j) * dwtdt_layer * 1000._r8  ! Convert m/s to mm/s
              end if
           end do
          
           ! Subtract subsurface discharge (qflx_drain) and store in qcharge
-          qcharge(c) = gw_recharge - qflx_drain(c)
+          qcharge(c) = gw_recharge + qflx_drain(c)
        end do
 
        ! Store current water table depth for next time step
